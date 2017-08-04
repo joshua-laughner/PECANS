@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Generate mechanism solver file from a KPP-like mechanism file or one following PECANS style
 """
@@ -575,6 +577,13 @@ def _main():
     :return: nothing
     """
     args = _get_args()
+    if args.style.lower() == 'pecans':
+        parse_pecan_species(args.species_file)
+        rxns = parse_pecan_reactions(args.reactions_file)
+    else:
+        raise NotImplementedError('No parser implemented for style {}'.format(args.style))
+
+    generate_chemderiv_file(rxns)
 
 
 if __name__ == '__main__':
