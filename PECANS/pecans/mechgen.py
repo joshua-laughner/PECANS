@@ -5,10 +5,22 @@ Generate mechanism solver file from a KPP-like mechanism file or one following P
 """
 
 import argparse
+from glob import glob
+import os.path
 import re
 
-derivative_file = 'chemderiv.pyx'
+
+_mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
+
+derivative_file = os.path.join(_mydir, 'chemderiv.pyx')
 pyx_indent = '    '
+
+# Rates-related things
+temperature_variable = 'TEMP'
+ndens_air_variable = 'CAIR'
+rate_expr_include_dir = os.path.join(_mydir, 'Rates')
+c_math_fxns = ['exp', 'sqrt', 'log', 'log10']
+
 
 class ChemError(Exception):
     pass
@@ -17,6 +29,9 @@ class SpeciesDefError(ChemError):
     pass
 
 class ReactionDefError(ChemError):
+    pass
+
+class RateDefError(ChemError):
     pass
 
 class Specie:
@@ -189,7 +204,7 @@ class Reaction:
         if isinstance(self._rate_fxn, float):
             return self._rate_fxn.__str__()
         else:
-            return self._rate_fxn.__name__
+            return self._rate_fxn
 
     def __init__(self, reactants, products, rate_fxn):
         """
@@ -375,8 +390,9 @@ class Derivative:
         """
         # Transform the input species from a set to a tuple to ensure the ordering remains constant
         self._input_species = tuple(self._input_species)
-        self._func_signature = 'd{}_dt({})'.format(self.changed_specie.name,
-                                                   ', '.join('double conc_'+s.name for s in self.input_species))
+        self._func_signature = 'd{}_dt(double {}, double {}, {})'.\
+            format(self.changed_specie.name, temperature_variable, ndens_air_variable,
+                   ', '.join('double conc_'+s.name for s in self.input_species))
 
     def func_def(self):
         """
@@ -402,6 +418,107 @@ class Derivative:
         return lines
 
 
+class RateExpression:
+    instances = []
+
+    def __init__(self, rate_string, rate_file, file_line_number):
+        self.used_in_mech = False
+        self.declaring_file = os.path.abspath(rate_file)
+        self.file_line = file_line_number
+        self.rate_name, self.num_inputs, self.temperature_ind, self.ndens_air_ind, self.body = RateExpression._check_rate_string(rate_string)
+        for rate_ex in RateExpression.instances:
+            if self.rate_name == rate_ex.rate_name:
+                raise RateDefError('Rate expression named "{}" already exists at line {} of file {}'.
+                                   format(self.rate_name, rate_ex.file_line, rate_ex.declaring_file))
+        RateExpression.instances.append(self)
+
+    @classmethod
+    def _check_rate_string(cls, rate_string, is_call=False):
+        function_def = rate_string.split(':')[0]
+
+        m = re.match('[cp]*def', rate_string)
+        if not is_call and (m is None or m.group() != 'cdef'):
+            raise RateDefError('Rate expressions must be defined as cdef functions')
+
+        m = re.search('\w+(?=\()', function_def)
+        if m is None:
+            raise RateDefError('Could not identify rate expression name for string:\n{}'.format(rate_string))
+        function_name = m.group()
+
+        if not is_call:
+            # If this is a definition, not a call, then the inputs should be valid variable names, separated by
+            # commas/spaces (meaning only letters, numbers, and underscores should be there, besides commas and spaces)
+            m = re.search('(?<=\()[\w\s,]+(?=\))', function_def)
+        else:
+            # If it is a call in the equations file, then there could be any manner of symbols in there
+            m = re.search('(?<=\().+(?=\))', function_def)
+        if m is None:
+            raise RateDefError('Could not identify rate expression inputs for string:\n{}'.format(rate_string))
+        function_inputs = m.group().split(',')
+        index_temperature = None
+        index_air_number_density = None
+        for inpt in function_inputs:
+            if not is_call and re.search('double\s+\w+', inpt) is None:
+                raise RateDefError('Input "{}" is not defined as type "double"'.format(inpt))
+            elif temperature_variable in inpt:
+                index_temperature = function_inputs.index(inpt)
+            elif ndens_air_variable in inpt:
+                index_air_number_density = function_inputs.index(inpt)
+
+        return function_name, len(function_inputs), index_temperature, index_air_number_density, rate_string
+
+    @classmethod
+    def find_rate_by_name(cls, rate_name):
+        for rate_ex in cls.instances:
+            if rate_ex.rate_name == rate_name:
+                return rate_ex
+        raise KeyError('No rate named "{}" defined'.format(rate_name))
+
+    @classmethod
+    def mark_rate_as_needed(cls, rate_call):
+        rate_name = cls._check_rate_call(rate_call)
+        cls.find_rate_by_name(rate_name).used_in_mech = True
+
+    @classmethod
+    def _check_rate_call(cls, call_string):
+        call_name, n_inputs, i_temp, i_cair, _ = cls._check_rate_string(call_string, is_call=True)
+        try:
+            rate_ex = cls.find_rate_by_name(call_name)
+        except KeyError as err:
+            raise RateDefError(err.args[0]) from None
+
+        if n_inputs != rate_ex.num_inputs:
+            raise RateDefError('Rate call has a different number of arguments ({}) than its definition ({})'.
+                               format(n_inputs, rate_ex.num_inputs))
+        elif i_temp != rate_ex.temperature_ind:
+            raise RateDefError('Rate call has temperature in a different place ({}) than its definition ({})'.
+                               format(i_temp + 1, rate_ex.temperature_ind + 1))
+        elif i_cair != rate_ex.ndens_air_ind:
+            raise RateDefError('Rate call has the number density of air in a different place ({}) than its definition ({})'.
+                               format(i_cair + 1, rate_ex.ndens_air_ind + 1))
+
+        return call_name
+
+
+    """
+    @classmethod
+    def _cythonize_rate_expression(cls, rate_string):
+        function_def, function_body = rate_string.split(':')
+        m = re.search('\w+(?=\()', function_def)
+        if m is None:
+            raise RateDefError('Could not identify rate expression name for string:\n{}'.format(rate_string))
+        function_name = m.group()
+
+        m = re.search('(?<=\().+(?=\))')
+        if m is None:
+            raise RateDefError('Could not identify rate expression inputs for string:\n{}'.format(rate_string))
+        function_inputs = [s.strip() for s in m.group().split(',')]
+        for rinput in function_inputs:
+            if re.search('\W', rinput) is not None:
+                raise RateDefError('Invalid character in rate expression input "{}"'.format(rinput))
+    """
+
+
 def _get_args():
     """
     Get the command line arguments
@@ -417,7 +534,7 @@ def _get_args():
     return args
 
 
-def parse_pecan_species(spec_file):
+def _parse_pecan_species(spec_file):
     """
     Parse a PECANS-style species file. The PECANS format requires that each specie is defined on
     its own line. Anything following a # is considered a comment and ignored
@@ -437,7 +554,7 @@ def parse_pecan_species(spec_file):
                 Specie(line2)  # don't need to return anything; automatically added to the "instances" list
 
 
-def parse_pecan_reactions(rxn_file):
+def _parse_pecan_reactions(rxn_file):
     """parse_pecan_reactions documentation:
     Parse a PECANS-style reaction file. The PECANS format follows these rules:
     1) Either -> or = delineates the product and reactant sides of a reaction
@@ -489,7 +606,20 @@ def parse_pecan_reactions(rxn_file):
                 raise ReactionDefError('Problem parsing reactants/products of line {} of {}: {}'
                                        .format(lineno, rxn_file, err.args[0])) from None
 
-            reactions.append(Reaction(reactants, products, 1e-15))
+            if rate_str.startswith('j'):
+                pass # deal with photolysis
+            else:
+                # If it's just a number that can be recognized as a float, leave it how it is
+                try:
+                    float(rate_str)
+                except ValueError:
+                    try:
+                        RateExpression.mark_rate_as_needed(rate_str)
+                    except RateDefError as err:
+                        raise ReactionDefError('Problem parsing reactants/products of line {} of {}: {}'
+                                               .format(lineno, rxn_file, err.args[0])) from None
+
+            reactions.append(Reaction(reactants, products, rate_str))
 
     return reactions
 
@@ -527,10 +657,48 @@ def _iter_react_prod(line):
         yield ReactionSpecie(specie, coeff)
 
 
+def _read_rate_def_files(additional_files):
+    rate_files = glob(os.path.join(rate_expr_include_dir, '*.rate')) + list(additional_files)
+    for rfile in rate_files:
+        reading_rate = False
+        curr_rate_expr = []
+        with open(rfile, 'r') as f:
+            line_num = 0
+            for line in f:
+                line_num += 1
+                if re.search('def.+:', line) is not None:
+                    reading_rate = True
+                    if len(curr_rate_expr) > 0:
+                        RateExpression('\n'.join(curr_rate_expr), rfile, def_line_num)
+                    curr_rate_expr = [line]
+                    def_line_num = line_num
+                elif reading_rate and len(line.strip()) > 0:
+                    curr_rate_expr.append(line)
+            # Add the last rate expression in the file
+            RateExpression('\n'.join(curr_rate_expr), rfile, def_line_num)
+
+
+def generate_pecans_mechanism(species_file, reactions_file, *extra_rate_def_files):
+    """
+    Main function that generates a mechanism file for the PECANS style inputs. Any other
+    input file style must have an equivalent primary function that reads rate expression
+    files, reads the species file, and reads the reactions file.
+    :param species_file: the file defining all the species included in the mechanism
+    :param reactions_file: the file defining the reactions that comprise the mechanism
+    :param *extra_rate_def_files: any additional files beyond those in the "Rates" subdirectory
+     that define rate constant expressions.
+    :return:
+    """
+    _read_rate_def_files(extra_rate_def_files)
+    _parse_pecan_species(species_file)
+    return _parse_pecan_reactions(reactions_file)
+
+
 def generate_chemderiv_file(reactions):
     """
-    Generates the chemical derivative .pyx file that contains all the derivative functions plus
-    the interface function that should be called from another Python program.
+    Generates the chemical derivative .pyx file that contains all the derivative functions
+     and rate constant functions plus the interface function that should be called from
+     another Python program.
     :param reactions: a list of instances of Reactions
     :return: nothing
     """
@@ -543,11 +711,16 @@ def generate_chemderiv_file(reactions):
         derivs.append(dC)
 
     with open(derivative_file, 'w') as f:
+        f.write('from libc.math cimport {}\n\n'.format(', '.join(c_math_fxns)))
         f.write('\n'.join(_generate_interface_function(derivs)))
         f.write('\n\n')
         for d in derivs:
             f.write('\n'.join(d.func_def()))
             f.write('\n\n')
+        for rate_ex in RateExpression.instances:
+            if rate_ex.used_in_mech:
+                f.write(rate_ex.body)
+                f.write('\n\n')
 
 
 def _generate_interface_function(derivatives):
@@ -559,9 +732,10 @@ def _generate_interface_function(derivatives):
     """
     lines = []
     dict_str = []
-    lines.append('def chem_solver(double dt, {}):'.format(', '.join(
-        ['double conc_{}'.format(s.name) for s in Specie.instances]
-    )))
+    lines.append('def chem_solver(double dt, double {}, double {}, {}):'.
+        format(temperature_variable, ndens_air_variable,
+        ', '.join(['double conc_{}'.format(s.name) for s in Specie.instances]
+                  )))
     for d in derivatives:
         lines.append(pyx_indent + 'cdef double dconc_{} = '.format(d.changed_specie.name) +
                      d.func_signature.replace('double', '') + ' * dt')
@@ -578,8 +752,7 @@ def _main():
     """
     args = _get_args()
     if args.style.lower() == 'pecans':
-        parse_pecan_species(args.species_file)
-        rxns = parse_pecan_reactions(args.reactions_file)
+        rxns = generate_pecans_mechanism(args.species_file, args.reactions_file)
     else:
         raise NotImplementedError('No parser implemented for style {}'.format(args.style))
 
