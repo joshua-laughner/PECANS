@@ -290,6 +290,8 @@ class Derivative:
     """
     Represents the derivative needed to calculate the change in a chemical specie
     """
+    max_summands_per_line = 20
+
     @property
     def changed_specie(self):
         """
@@ -402,15 +404,29 @@ class Derivative:
             raise RuntimeError('Derivative.func_def() called before Derivative.finalize()')
 
         lines = []
+        # Create the function signature
         lines.append('cdef double {}:'.format(self.func_signature))
-        lines.append('    cdef double d{} = '.format(self.changed_specie.name))
+        # The next line defines the return variable
+        return_var = 'd{}'.format(self.changed_specie.name)
+        lines.append('{}cdef double {} = '.format(pyx_indent, return_var))
         for i in range(len(self.reactions)):
+            # We then loop through the reactions that change this specie and sum each one up
+            # A quirk of how Cython seems to handle addition is that it breaks a line down into
+            # operations and recursively assigns summands as objects, so a long equation can have
+            # summand objects that are too deeply nested. We get around this by separating long
+            # expressions over multiple lines
+            if i % Derivative.max_summands_per_line == 0 and i > 0:
+                lines.append('{}{} += '.format(pyx_indent, return_var))
+
             rxn = self.reactions[i]
             coeff = self.coefficients[i]
             rxn_str = '{}*{}*{}'.format(coeff, rxn.rate_str,
                                         '*'.join(['conc_'+s.name for s in rxn.reactant_species]))
             lines[-1] += rxn_str
-            if i < len(self.reactions) - 1:
+            if i < len(self.reactions) - 1 and (i+1) % Derivative.max_summands_per_line:
+                # There are only two cases where we do not want to add a "+" sign after each reaction's
+                # contribution: if it's the last reaction, or if we are going to split the summation onto
+                # the next line
                 lines[-1] += ' + '
         lines.append('    return d{}'.format(self.changed_specie.name))
 
@@ -729,13 +745,13 @@ def _read_rate_def_files(additional_file):
                 if re.search('def.+:', line) is not None:
                     reading_rate = True
                     if len(curr_rate_expr) > 0:
-                        RateExpression('\n'.join(curr_rate_expr), rfile, def_line_num)
+                        RateExpression(''.join(curr_rate_expr), rfile, def_line_num)
                     curr_rate_expr = [line]
                     def_line_num = line_num
                 elif reading_rate and len(line.strip()) > 0:
                     curr_rate_expr.append(line)
             # Add the last rate expression in the file
-            RateExpression('\n'.join(curr_rate_expr), rfile, def_line_num)
+            RateExpression(''.join(curr_rate_expr), rfile, def_line_num)
 
 
 def generate_pecans_mechanism(species_file, reactions_file, extra_rate_def_file=None):
@@ -777,7 +793,10 @@ def generate_chemderiv_file(reactions):
         f.write('\n\n')
         for d in derivs:
             f.write('\n'.join(d.func_def()))
-            f.write('\n\n')
+            f.write('\n\n\n')
+
+        rate_ex_comment = '# RATE EXPRESSIONS #'
+        f.write('{0}\n{1}\n{0}\n\n'.format('#'*len(rate_ex_comment), rate_ex_comment))
         for rate_ex in RateExpression.instances:
             if rate_ex.used_in_mech:
                 f.write(rate_ex.body)
