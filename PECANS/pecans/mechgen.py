@@ -215,8 +215,12 @@ class Reaction:
         """
         if not isinstance(reactants, (list, tuple, set)):
             raise TypeError('reactants must be an instance of list, tuple, or set')
+        elif any([not isinstance(reactant, ReactionSpecie) for reactant in reactants]):
+            raise TypeError('All elements of reactants must be instances of ReactionSpecie')
         if not isinstance(products, (list, tuple, set)):
             raise TypeError('products must be an instance of list, tuple, or set')
+        elif any([not isinstance(product, ReactionSpecie) for product in products]):
+            raise TypeError('All elements of products must be instances of ReactionSpecie')
 
         self._reactants = self._make_specie_set(reactants)
         self._products = self._make_specie_set(products)
@@ -420,8 +424,13 @@ class Derivative:
 
             rxn = self.reactions[i]
             coeff = self.coefficients[i]
-            rxn_str = '{}*{}*{}'.format(coeff, rxn.rate_str,
-                                        '*'.join(['conc_'+s.name for s in rxn.reactant_species]))
+            rxn_str = '{}*{}*{}'.format(
+                coeff, rxn.rate_str, '*'.join(
+                    ['conc_'+s.name if s.coefficient == 1.0 else 'conc_{}**{}'.format(
+                        s.name, s.coefficient
+                    ) for s in rxn.reactants]
+                )
+            )
             lines[-1] += rxn_str
             if i < len(self.reactions) - 1 and (i+1) % Derivative.max_summands_per_line:
                 # There are only two cases where we do not want to add a "+" sign after each reaction's
@@ -765,7 +774,6 @@ def generate_pecans_mechanism(species_file, reactions_file, extra_rate_def_file=
      that define rate constant expressions.
     :return:
     """
-    print('Building p')
     _read_rate_def_files(extra_rate_def_file)
     _parse_pecan_species(species_file)
     return _parse_pecan_reactions(reactions_file)
