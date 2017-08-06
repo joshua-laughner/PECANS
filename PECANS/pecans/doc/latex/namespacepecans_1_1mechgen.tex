@@ -1,0 +1,97 @@
+\hypertarget{namespacepecans_1_1mechgen}{}\section{pecans.\+mechgen Namespace Reference}
+\label{namespacepecans_1_1mechgen}\index{pecans.\+mechgen@{pecans.\+mechgen}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1ChemError}{Chem\+Error}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1Derivative}{Derivative}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1RateDefError}{Rate\+Def\+Error}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1RateExpression}{Rate\+Expression}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1Reaction}{Reaction}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1ReactionDefError}{Reaction\+Def\+Error}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1ReactionSpecie}{Reaction\+Specie}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1Specie}{Specie}
+\item 
+class \hyperlink{classpecans_1_1mechgen_1_1SpeciesDefError}{Species\+Def\+Error}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespacepecans_1_1mechgen_a998050ad09f27de979fff1102f144e9b}{generate\+\_\+pecans\+\_\+mechanism} (species\+\_\+file, reactions\+\_\+file, extra\+\_\+rate\+\_\+def\+\_\+file=None)
+\item 
+def \hyperlink{namespacepecans_1_1mechgen_a537f570f89214d1eb4de4120fab77c99}{generate\+\_\+chemderiv\+\_\+file} (reactions)
+\item 
+def {\bfseries generate\+\_\+mechanism} (mechanism\+\_\+style, species\+\_\+file, reactions\+\_\+file, additional\+\_\+rates\+\_\+file=None)\hypertarget{namespacepecans_1_1mechgen_a63228ddf741593d74c7c36c253ccdfa4}{}\label{namespacepecans_1_1mechgen_a63228ddf741593d74c7c36c253ccdfa4}
+
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries derivative\+\_\+file} = os.\+path.\+join(\+\_\+mydir, \textquotesingle{}chemderiv.\+pyx\textquotesingle{})\hypertarget{namespacepecans_1_1mechgen_ad3768d39ff17a98fe5557dd8c5cc5906}{}\label{namespacepecans_1_1mechgen_ad3768d39ff17a98fe5557dd8c5cc5906}
+
+\item 
+string {\bfseries pyx\+\_\+indent} = \textquotesingle{} \textquotesingle{}\hypertarget{namespacepecans_1_1mechgen_a107402f8c195fb2e8890ed47f2dae3ae}{}\label{namespacepecans_1_1mechgen_a107402f8c195fb2e8890ed47f2dae3ae}
+
+\item 
+string {\bfseries temperature\+\_\+variable} = \textquotesingle{}T\+E\+MP\textquotesingle{}\hypertarget{namespacepecans_1_1mechgen_a44fbe59fd0452f44bb22af2fc8b743f4}{}\label{namespacepecans_1_1mechgen_a44fbe59fd0452f44bb22af2fc8b743f4}
+
+\item 
+string {\bfseries ndens\+\_\+air\+\_\+variable} = \textquotesingle{}C\+A\+IR\textquotesingle{}\hypertarget{namespacepecans_1_1mechgen_a3532815164cb3268406c9dbba06c8a77}{}\label{namespacepecans_1_1mechgen_a3532815164cb3268406c9dbba06c8a77}
+
+\item 
+{\bfseries rate\+\_\+expr\+\_\+include\+\_\+dir} = os.\+path.\+join(\+\_\+mydir, \textquotesingle{}Rates\textquotesingle{})\hypertarget{namespacepecans_1_1mechgen_a6f056fe0002af4ffb0420ea33aea4922}{}\label{namespacepecans_1_1mechgen_a6f056fe0002af4ffb0420ea33aea4922}
+
+\item 
+list {\bfseries c\+\_\+math\+\_\+fxns} = \mbox{[}\textquotesingle{}exp\textquotesingle{}, \textquotesingle{}sqrt\textquotesingle{}, \textquotesingle{}log\textquotesingle{}, \textquotesingle{}log10\textquotesingle{}\mbox{]}\hypertarget{namespacepecans_1_1mechgen_a4b2dfbb7822ac276236b377b13d58a5c}{}\label{namespacepecans_1_1mechgen_a4b2dfbb7822ac276236b377b13d58a5c}
+
+\item 
+dictionary {\bfseries style\+\_\+parse\+\_\+fxn\+\_\+dict} = \{\textquotesingle{}pecans\textquotesingle{}\+:\hyperlink{namespacepecans_1_1mechgen_a998050ad09f27de979fff1102f144e9b}{generate\+\_\+pecans\+\_\+mechanism}\}\hypertarget{namespacepecans_1_1mechgen_ac68d24dbdb0124e04d8d7d268711289c}{}\label{namespacepecans_1_1mechgen_ac68d24dbdb0124e04d8d7d268711289c}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Generate mechanism solver file from a KPP-like mechanism file or one following PECANS style
+\end{DoxyVerb}
+ 
+
+\subsection{Function Documentation}
+\index{pecans\+::mechgen@{pecans\+::mechgen}!generate\+\_\+chemderiv\+\_\+file@{generate\+\_\+chemderiv\+\_\+file}}
+\index{generate\+\_\+chemderiv\+\_\+file@{generate\+\_\+chemderiv\+\_\+file}!pecans\+::mechgen@{pecans\+::mechgen}}
+\subsubsection[{\texorpdfstring{generate\+\_\+chemderiv\+\_\+file(reactions)}{generate_chemderiv_file(reactions)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+generate\+\_\+chemderiv\+\_\+file (
+\begin{DoxyParamCaption}
+\item[{}]{reactions}
+\end{DoxyParamCaption}
+)}\hypertarget{namespacepecans_1_1mechgen_a537f570f89214d1eb4de4120fab77c99}{}\label{namespacepecans_1_1mechgen_a537f570f89214d1eb4de4120fab77c99}
+\begin{DoxyVerb}Generates the chemical derivative .pyx file that contains all the derivative functions
+ and rate constant functions plus the interface function that should be called from
+ another Python program.
+:param reactions: a list of instances of Reactions
+:return: nothing
+\end{DoxyVerb}
+ \index{pecans\+::mechgen@{pecans\+::mechgen}!generate\+\_\+pecans\+\_\+mechanism@{generate\+\_\+pecans\+\_\+mechanism}}
+\index{generate\+\_\+pecans\+\_\+mechanism@{generate\+\_\+pecans\+\_\+mechanism}!pecans\+::mechgen@{pecans\+::mechgen}}
+\subsubsection[{\texorpdfstring{generate\+\_\+pecans\+\_\+mechanism(species\+\_\+file, reactions\+\_\+file, extra\+\_\+rate\+\_\+def\+\_\+file=\+None)}{generate_pecans_mechanism(species_file, reactions_file, extra_rate_def_file=None)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+generate\+\_\+pecans\+\_\+mechanism (
+\begin{DoxyParamCaption}
+\item[{}]{species\+\_\+file, }
+\item[{}]{reactions\+\_\+file, }
+\item[{}]{extra\+\_\+rate\+\_\+def\+\_\+file = {\ttfamily None}}
+\end{DoxyParamCaption}
+)}\hypertarget{namespacepecans_1_1mechgen_a998050ad09f27de979fff1102f144e9b}{}\label{namespacepecans_1_1mechgen_a998050ad09f27de979fff1102f144e9b}
+\begin{DoxyVerb}Main function that generates a mechanism file for the PECANS style inputs. Any other
+input file style must have an equivalent primary function that reads rate expression
+files, reads the species file, and reads the reactions file.
+:param species_file: the file defining all the species included in the mechanism
+:param reactions_file: the file defining the reactions that comprise the mechanism
+:param *extra_rate_def_file: any additional files beyond those in the "Rates" subdirectory
+ that define rate constant expressions.
+:return:
+\end{DoxyVerb}
+ 

@@ -1,0 +1,42 @@
+\subsection*{Quick start}
+
+Assuming you want to use one of the built in mechanisms\+:
+
+
+\begin{DoxyEnumerate}
+\item (optional, but recommended) Set up a virtual environment (see below)
+\item Clone/download the P\+E\+C\+A\+NS model
+\item Install the required Python packages with {\ttfamily pip3 install -\/r requirements.\+txt}
+\item Build a mechanism with the {\ttfamily build\+\_\+pecans.\+py} script (run it to select options interactively).
+\item ({\itshape not yet implemented}) Execute the model with the {\ttfamily run\+\_\+pecans.\+py} script.
+\end{DoxyEnumerate}
+
+\subsection*{Detail start}
+
+\subsubsection*{1) Set up a virtual environment (optional)}
+
+Although this is optional, we do recommend that you set up P\+E\+C\+A\+NS in a Python 3 virtual environment if at all possible. This ensures that you can install the necessary packages without changing your system wide Python installation.
+
+With a standard Python 3 installation, you create a virtual environment with the command {\ttfamily python3 -\/m venv My\+Virt\+Env}. This will create a folder {\ttfamily My\+Virt\+Env} in the current folder (you can change that name to whatever you wish).
+
+Users with an Anaconda python installation may wish to use {\ttfamily conda create -\/-\/name My\+Virt\+Env} instead.
+
+After creating the virtual environment, {\ttfamily cd} into that directory and type {\ttfamily source bin/activate} to activate that virtual environment. You will need to perform this step each time you wish to build or run the model, {\itshape if} you build it in a virtual environment.
+
+The first time you activate the virtual environment, it\textquotesingle{}s a good idea to make sure {\ttfamily pip} (the Python package installer) is up to date by running the command {\ttfamily pip3 install -\/-\/upgrade pip}.
+
+\subsubsection*{2) Clone or download the P\+E\+C\+A\+NS model}
+
+I recommend you clone the model. That way you\textquotesingle{}ll be able to get any updates with a simple {\ttfamily git pull} command, and if you make any changes to the code, you\textquotesingle{}ll always be able to undo them. You will need \href{https://git-scm.com/downloads}{\tt git} installed on your computer. If you\textquotesingle{}d rather just download a compressed folder with the model, see the last paragraph.
+
+To clone\+: open a terminal window and {\ttfamily cd} into your virtual environment folder (if you made one) or into a directory that you want the P\+E\+C\+A\+NS directory to exist in. Go to \href{https://github.com/firsttempora/PECANS}{\tt https\+://github.\+com/firsttempora/\+P\+E\+C\+A\+NS} and click the \char`\"{}\+Clone or download\char`\"{} button. Choose \char`\"{}\+H\+T\+T\+P\+S\char`\"{} and copy the link. Back in your terminal, type {\ttfamily git clone $<$link$>$}, pasting the link you just copied in place of {\ttfamily $<$link$>$} and press {\ttfamily enter}. Git will create a P\+E\+C\+A\+NS folder and download the model into it.
+
+To download a compressed folder, go to the \href{https://github.com/firsttempora/PECANS/releases}{\tt releases} page of the Git\+Hub repo and download the most recent release. Decompress it with your favorite extractor.
+
+\subsubsection*{3) Install the required Python packages}
+
+P\+E\+C\+A\+NS has a number of packages it requires to run. All can be installed through the {\ttfamily pip3} utility. In the top P\+E\+C\+A\+NS folder, there is a {\ttfamily requirements.\+txt} document. With your virtual environment activated (if you made one), execute the command {\ttfamily pip3 install -\/r requirements.\+txt} from this folder. This tells {\ttfamily pip3} to install each of the dependencies listed in that file.
+
+\subsubsection*{4) Build a mechanism}
+
+The chemical mechanisms in P\+E\+C\+A\+NS are automatically coded into Cython from a mechanism file. This helps speed up computation by allowing the bulk of the program to be compiled and optimized. The process is automated by the {\ttfamily build\+\_\+pecans.\+py} script in the second P\+E\+C\+A\+NS folder under the main one. With your virtual environment activated (if you made one), execute this script with {\ttfamily ./build\+\_\+pecans.py} from the folder that it resides in. This will present you with a list of available mechanisms. Simply choose one and it will be build. You can also specify a mechanism on the command line, e.\+q. {\ttfamily ./build\+\_\+peacns.py nox} will build the \char`\"{}nox\char`\"{} mechanism. 

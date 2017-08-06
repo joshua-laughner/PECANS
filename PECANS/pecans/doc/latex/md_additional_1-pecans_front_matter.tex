@@ -1,0 +1,38 @@
+\subsection*{P\+E\+C\+A\+NS\+: the Python Editable Chemical Atmospheric Numeric Solver}
+
+The goal of the P\+E\+C\+A\+NS multi-\/box model is to provide a relatively straightforward but efficient and flexible idealized atmospheric chemistry modeling framework. It is not intended to supplant global or regional chemical transport models such as G\+E\+O\+S-\/\+Chem, W\+R\+F-\/\+Chem, or C\+M\+AQ, but instead to offer the capability to carry out one box to 3D multi-\/box modeling with idealized (rather than real world) transport.
+
+Keeping the code base clean and easy to follow is a top priority for this model. This is why we have chosen to develop the code in Python/\+Cython rather than Fortran or C, and we will be aggressively documenting the behavior of the model. The code will also be written with the \char`\"{}code is written once, read many times\char`\"{} philosophy.
+
+Most users should be able to use P\+E\+C\+A\+NS in their research without modifying the code at all, by modifying the mechanism and configuration files. However, this guide will be written with the expectation that at least some users will want to inspect the code, either to understand how it works, troubleshoot the behavior of the model, or to extend the behavior in some manner. Thus, the later chapters of this documentation will include information about the progammatic structure of the model, as well as the necessary information for end users.
+
+\subsection*{Obtaining}
+
+The P\+E\+C\+A\+NS model can be obtained from the Git\+Hub repository at
+
+\href{https://github.com/firsttempora/PECANS}{\tt https\+://github.\+com/firsttempora/\+P\+E\+C\+A\+NS}
+
+We recommend that you clone the repository, this will allow you to receive updates most easily. However, you may also download one of the \href{https://github.com/firsttempora/PECANS/releases}{\tt releases}.
+
+\subsection*{Reporting problems or contacting us}
+
+The best way to report a problem is via the \href{https://github.com/firsttempora/PECANS/issues}{\tt Issues} tab of the Git\+Hub repository. This ensures a record of the issue exists and will not be lost in an inbox somewhere.
+
+If you have a question, it is best if you open an issue with the \char`\"{}question\char`\"{} tag. This way, there is a record of your question that may help another user and if it needs to be addressed through an update to the code, it will already be logged.
+
+If you prefer to contact the author(s) directly, reach out to\+:
+
+\href{mailto:first.tempora@gmail.com}{\tt first.\+tempora@gmail.\+com}
+
+\subsection*{Contributing}
+
+Contributions are welcome! If you would like to submit an improvement, please take the following steps\+:
+
+
+\begin{DoxyEnumerate}
+\item Read the style guide and follow the coding style laid out therein.
+\item Consider if the improvement keeps the model {\itshape straightforward} and {\itshape flexible} (please contact us if you are uncertain if it does.)
+\item \href{https://help.github.com/articles/fork-a-repo/}{\tt Fork} the Git\+Hub repository to your Git\+Hub account and clone the fork.
+\item Make your modifications to the forked repository.
+\item Submit a \href{https://help.github.com/articles/about-pull-requests/}{\tt pull request} 
+\end{DoxyEnumerate}

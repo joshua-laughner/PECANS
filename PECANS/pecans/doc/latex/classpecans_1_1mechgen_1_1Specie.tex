@@ -1,0 +1,110 @@
+\hypertarget{classpecans_1_1mechgen_1_1Specie}{}\section{pecans.\+mechgen.\+Specie Class Reference}
+\label{classpecans_1_1mechgen_1_1Specie}\index{pecans.\+mechgen.\+Specie@{pecans.\+mechgen.\+Specie}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Specie_a41e559347b3423f3516301842385613c}{name} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Specie_ad58b10b6479f367d6e33ef8744257445}{spec\+\_\+id} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Specie_a4b9972921c40c021e7b56d5fc54324cc}{\+\_\+\+\_\+init\+\_\+\+\_\+} (self, \hyperlink{classpecans_1_1mechgen_1_1Specie_a41e559347b3423f3516301842385613c}{name})
+\item 
+def {\bfseries \+\_\+\+\_\+repr\+\_\+\+\_\+} (self)\hypertarget{classpecans_1_1mechgen_1_1Specie_a069a0d0e2f85bb2e7cf1f6471da4889e}{}\label{classpecans_1_1mechgen_1_1Specie_a069a0d0e2f85bb2e7cf1f6471da4889e}
+
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Specie_a6901f1ddd421e3a9c8064b2800380415}{reset} (cls)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Specie_a34e33f51afc5238cbfcf73eeda600d99}{find\+\_\+by\+\_\+name} (cls, \hyperlink{classpecans_1_1mechgen_1_1Specie_a41e559347b3423f3516301842385613c}{name}, case\+\_\+sensitive=False)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries instances}\hypertarget{classpecans_1_1mechgen_1_1Specie_a2ec5debad50ea97e767e38ef840df970}{}\label{classpecans_1_1mechgen_1_1Specie_a2ec5debad50ea97e767e38ef840df970}
+
+\item 
+{\bfseries next\+\_\+id}\hypertarget{classpecans_1_1mechgen_1_1Specie_a3b362b20f1628091a44eae5325b4840a}{}\label{classpecans_1_1mechgen_1_1Specie_a3b362b20f1628091a44eae5325b4840a}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+list {\bfseries instances} = \mbox{[}$\,$\mbox{]}\hypertarget{classpecans_1_1mechgen_1_1Specie_ab94a7111e3f46171962598b5febaf96d}{}\label{classpecans_1_1mechgen_1_1Specie_ab94a7111e3f46171962598b5febaf96d}
+
+\item 
+int {\bfseries next\+\_\+id} = 0\hypertarget{classpecans_1_1mechgen_1_1Specie_a90532b3bc6c0be98e6cc2ea556f37309}{}\label{classpecans_1_1mechgen_1_1Specie_a90532b3bc6c0be98e6cc2ea556f37309}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Class which represents unique chemical species in the mechanism
+\end{DoxyVerb}
+ 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}!\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}}
+\index{\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}!pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}}
+\subsubsection[{\texorpdfstring{\+\_\+\+\_\+init\+\_\+\+\_\+(self, name)}{__init__(self, name)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Specie.\+\_\+\+\_\+init\+\_\+\+\_\+ (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{name}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Specie_a4b9972921c40c021e7b56d5fc54324cc}{}\label{classpecans_1_1mechgen_1_1Specie_a4b9972921c40c021e7b56d5fc54324cc}
+\begin{DoxyVerb}Create a new, unique species. Each instance is automatically registered with the
+class variable "instances", and an error is thrown if the name matches one that
+already exists.
+:param name:
+:return: instance of Specie
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\index{pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}!find\+\_\+by\+\_\+name@{find\+\_\+by\+\_\+name}}
+\index{find\+\_\+by\+\_\+name@{find\+\_\+by\+\_\+name}!pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}}
+\subsubsection[{\texorpdfstring{find\+\_\+by\+\_\+name(cls, name, case\+\_\+sensitive=\+False)}{find_by_name(cls, name, case_sensitive=False)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Specie.\+find\+\_\+by\+\_\+name (
+\begin{DoxyParamCaption}
+\item[{}]{cls, }
+\item[{}]{name, }
+\item[{}]{case\+\_\+sensitive = {\ttfamily False}}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Specie_a34e33f51afc5238cbfcf73eeda600d99}{}\label{classpecans_1_1mechgen_1_1Specie_a34e33f51afc5238cbfcf73eeda600d99}
+\begin{DoxyVerb}Finds the species instance by its name
+:param name: the name to search for
+:param case_sensitive: if true, matches case, if false (default), does not
+:return: an instance of Specie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}!name@{name}}
+\index{name@{name}!pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}}
+\subsubsection[{\texorpdfstring{name(self)}{name(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Specie.\+name (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Specie_a41e559347b3423f3516301842385613c}{}\label{classpecans_1_1mechgen_1_1Specie_a41e559347b3423f3516301842385613c}
+\begin{DoxyVerb}The name of the species
+:return: the name as a string
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}!reset@{reset}}
+\index{reset@{reset}!pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}}
+\subsubsection[{\texorpdfstring{reset(cls)}{reset(cls)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Specie.\+reset (
+\begin{DoxyParamCaption}
+\item[{}]{cls}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Specie_a6901f1ddd421e3a9c8064b2800380415}{}\label{classpecans_1_1mechgen_1_1Specie_a6901f1ddd421e3a9c8064b2800380415}
+\begin{DoxyVerb}Clears the instances list and resets the ID counter
+:return: nothing
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}!spec\+\_\+id@{spec\+\_\+id}}
+\index{spec\+\_\+id@{spec\+\_\+id}!pecans\+::mechgen\+::\+Specie@{pecans\+::mechgen\+::\+Specie}}
+\subsubsection[{\texorpdfstring{spec\+\_\+id(self)}{spec_id(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Specie.\+spec\+\_\+id (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Specie_ad58b10b6479f367d6e33ef8744257445}{}\label{classpecans_1_1mechgen_1_1Specie_ad58b10b6479f367d6e33ef8744257445}
+\begin{DoxyVerb}The numerical ID of the species
+:return: the ID as an integer
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/josh/\+Documents/\+Python/\+Virt\+Envs/\+Chem\+Model/\+P\+E\+C\+A\+N\+S/pecans/mechgen.\+py\end{DoxyCompactItemize}

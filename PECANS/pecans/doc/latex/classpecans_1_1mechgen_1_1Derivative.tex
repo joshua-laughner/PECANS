@@ -1,0 +1,141 @@
+\hypertarget{classpecans_1_1mechgen_1_1Derivative}{}\section{pecans.\+mechgen.\+Derivative Class Reference}
+\label{classpecans_1_1mechgen_1_1Derivative}\index{pecans.\+mechgen.\+Derivative@{pecans.\+mechgen.\+Derivative}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_a8e0a1ede8e4d02582dda60aa2738c4b7}{changed\+\_\+specie} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_a262ef84f18366212ccfd65bf55e32e3f}{input\+\_\+species} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_a1b27d7f388e6e23424d26131111d8eca}{reactions} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_ad5d2c9c575a5f73dd1e8df55bde0b149}{coefficients} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_a8e5fea94add3ea7b89af843e46a10f0d}{func\+\_\+signature} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_aa36d38bcd95cd1788751b2c126ad54eb}{\+\_\+\+\_\+init\+\_\+\+\_\+} (self, specie)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_afd45c9243d14a3411bf0cd520eed89e8}{add\+\_\+rxn\+\_\+if\+\_\+relevant} (self, rxn)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_adde4d44f33a22c4785c1c1c989a06251}{finalize} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Derivative_a68bc05227b54ff11d80ee283ee5895ba}{func\+\_\+def} (self)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Represents the derivative needed to calculate the change in a chemical specie
+\end{DoxyVerb}
+ 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}}
+\index{\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{\+\_\+\+\_\+init\+\_\+\+\_\+(self, specie)}{__init__(self, specie)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+\_\+\+\_\+init\+\_\+\+\_\+ (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{specie}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_aa36d38bcd95cd1788751b2c126ad54eb}{}\label{classpecans_1_1mechgen_1_1Derivative_aa36d38bcd95cd1788751b2c126ad54eb}
+\begin{DoxyVerb}Initialize an instance of Derivative that can be used to represent the change of a chemical
+specie in a single timestep.
+:param specie: The specie that the derivative is for; an instance of Specie
+:return: an instance of Derivative
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!add\+\_\+rxn\+\_\+if\+\_\+relevant@{add\+\_\+rxn\+\_\+if\+\_\+relevant}}
+\index{add\+\_\+rxn\+\_\+if\+\_\+relevant@{add\+\_\+rxn\+\_\+if\+\_\+relevant}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{add\+\_\+rxn\+\_\+if\+\_\+relevant(self, rxn)}{add_rxn_if_relevant(self, rxn)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+add\+\_\+rxn\+\_\+if\+\_\+relevant (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{rxn}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_afd45c9243d14a3411bf0cd520eed89e8}{}\label{classpecans_1_1mechgen_1_1Derivative_afd45c9243d14a3411bf0cd520eed89e8}
+\begin{DoxyVerb}Given a reaction, this will determine if the changed_specie appears on either side of the reaction
+and if so, adds the reaction to the list of information that the derivative will need
+:param rxn: an instance of Reaction
+:return: a boolean, True if the reaction was relevant, False otherwise
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!changed\+\_\+specie@{changed\+\_\+specie}}
+\index{changed\+\_\+specie@{changed\+\_\+specie}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{changed\+\_\+specie(self)}{changed_specie(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+changed\+\_\+specie (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_a8e0a1ede8e4d02582dda60aa2738c4b7}{}\label{classpecans_1_1mechgen_1_1Derivative_a8e0a1ede8e4d02582dda60aa2738c4b7}
+\begin{DoxyVerb}The specie that the derivative is for
+:return: an instance of Specie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!coefficients@{coefficients}}
+\index{coefficients@{coefficients}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{coefficients(self)}{coefficients(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+coefficients (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_ad5d2c9c575a5f73dd1e8df55bde0b149}{}\label{classpecans_1_1mechgen_1_1Derivative_ad5d2c9c575a5f73dd1e8df55bde0b149}
+\begin{DoxyVerb}The coefficients for each reaction, tracking both how many molecules of the changed_specie
+are produced or consumed and the sign (positive for produced, negative for consumed). This
+is an overall coefficient, so if a specie appears on both sides, there will still be only
+one coefficient for that reaction.
+:return: a list of floats
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!finalize@{finalize}}
+\index{finalize@{finalize}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{finalize(self)}{finalize(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+finalize (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_adde4d44f33a22c4785c1c1c989a06251}{}\label{classpecans_1_1mechgen_1_1Derivative_adde4d44f33a22c4785c1c1c989a06251}
+\begin{DoxyVerb}To be called once all reactions are added. This, internally, converts the collection of input species
+from a set to a tuple, to ensure that the order is consistent at all times.
+:return: nothing
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!func\+\_\+def@{func\+\_\+def}}
+\index{func\+\_\+def@{func\+\_\+def}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{func\+\_\+def(self)}{func_def(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+func\+\_\+def (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_a68bc05227b54ff11d80ee283ee5895ba}{}\label{classpecans_1_1mechgen_1_1Derivative_a68bc05227b54ff11d80ee283ee5895ba}
+\begin{DoxyVerb}Creates the Cython function definition for the function that will calculate this derivative.
+:return: A list of strings, each string is a line in the function definition
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!func\+\_\+signature@{func\+\_\+signature}}
+\index{func\+\_\+signature@{func\+\_\+signature}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{func\+\_\+signature(self)}{func_signature(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+func\+\_\+signature (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_a8e5fea94add3ea7b89af843e46a10f0d}{}\label{classpecans_1_1mechgen_1_1Derivative_a8e5fea94add3ea7b89af843e46a10f0d}
+\begin{DoxyVerb}The signature of the function that will be called to calculate the derivative. Includes the
+function name, argument types, and argument names, i.e. dNO_dt(double conc_NO, double conc_O3)
+Only defined after calling finalize() on this instance.
+:return: a string that represents the function signature
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!input\+\_\+species@{input\+\_\+species}}
+\index{input\+\_\+species@{input\+\_\+species}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{input\+\_\+species(self)}{input_species(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+input\+\_\+species (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_a262ef84f18366212ccfd65bf55e32e3f}{}\label{classpecans_1_1mechgen_1_1Derivative_a262ef84f18366212ccfd65bf55e32e3f}
+\begin{DoxyVerb}The species whose concentrations are needed as inputs to calculate the derivative
+:return: a set of instances of Specie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}!reactions@{reactions}}
+\index{reactions@{reactions}!pecans\+::mechgen\+::\+Derivative@{pecans\+::mechgen\+::\+Derivative}}
+\subsubsection[{\texorpdfstring{reactions(self)}{reactions(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Derivative.\+reactions (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Derivative_a1b27d7f388e6e23424d26131111d8eca}{}\label{classpecans_1_1mechgen_1_1Derivative_a1b27d7f388e6e23424d26131111d8eca}
+\begin{DoxyVerb}The reactions that involve the changed_specie
+:return: a list of instances of Reaction
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/josh/\+Documents/\+Python/\+Virt\+Envs/\+Chem\+Model/\+P\+E\+C\+A\+N\+S/pecans/mechgen.\+py\end{DoxyCompactItemize}

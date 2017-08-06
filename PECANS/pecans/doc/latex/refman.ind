@@ -1,0 +1,136 @@
+\begin{theindex}
+
+  \item {\+\_\+\+\_\+init\+\_\+\+\_\+}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{14}
+    \subitem {pecans\+::mechgen\+::\+Rate\+Expression}, \hyperpage{17}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{18}
+    \subitem {pecans\+::mechgen\+::\+Reaction\+Specie}, \hyperpage{21}
+    \subitem {pecans\+::mechgen\+::\+Specie}, \hyperpage{22}
+
+  \indexspace
+
+  \item {add\+\_\+rxn\+\_\+if\+\_\+relevant}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{14}
+
+  \indexspace
+
+  \item {changed\+\_\+specie}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{14}
+  \item {coefficients}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{14}
+
+  \indexspace
+
+  \item {finalize}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{14}
+  \item {find\+\_\+by\+\_\+name}
+    \subitem {pecans\+::mechgen\+::\+Specie}, \hyperpage{22}
+  \item {find\+\_\+rate\+\_\+by\+\_\+name}
+    \subitem {pecans\+::mechgen\+::\+Rate\+Expression}, \hyperpage{17}
+  \item {func\+\_\+def}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{15}
+  \item {func\+\_\+signature}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{15}
+
+  \indexspace
+
+  \item {generate\+\_\+chemderiv\+\_\+file}
+    \subitem {pecans\+::mechgen}, \hyperpage{12}
+  \item {generate\+\_\+pecans\+\_\+mechanism}
+    \subitem {pecans\+::mechgen}, \hyperpage{12}
+  \item {get\+\_\+product\+\_\+specie}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{18}
+  \item {get\+\_\+reactant\+\_\+specie}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{18}
+
+  \indexspace
+
+  \item {id}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{19}
+  \item {input\+\_\+species}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{15}
+
+  \indexspace
+
+  \item {mark\+\_\+rate\+\_\+as\+\_\+needed}
+    \subitem {pecans\+::mechgen\+::\+Rate\+Expression}, \hyperpage{17}
+
+  \indexspace
+
+  \item {name}
+    \subitem {pecans\+::mechgen\+::\+Specie}, \hyperpage{22}
+
+  \indexspace
+
+  \item {pecans}, \hyperpage{11}
+  \item {pecans.\+mechgen}, \hyperpage{11}
+  \item {pecans.\+mechgen.\+Chem\+Error}, \hyperpage{13}
+  \item {pecans.\+mechgen.\+Derivative}, \hyperpage{14}
+  \item {pecans.\+mechgen.\+Rate\+Def\+Error}, \hyperpage{16}
+  \item {pecans.\+mechgen.\+Rate\+Expression}, \hyperpage{16}
+  \item {pecans.\+mechgen.\+Reaction}, \hyperpage{18}
+  \item {pecans.\+mechgen.\+Reaction\+Def\+Error}, \hyperpage{20}
+  \item {pecans.\+mechgen.\+Reaction\+Specie}, \hyperpage{21}
+  \item {pecans.\+mechgen.\+Specie}, \hyperpage{21}
+  \item {pecans.\+mechgen.\+Species\+Def\+Error}, \hyperpage{23}
+  \item {pecans\+::mechgen}
+    \subitem {generate\+\_\+chemderiv\+\_\+file}, \hyperpage{12}
+    \subitem {generate\+\_\+pecans\+\_\+mechanism}, \hyperpage{12}
+  \item {pecans\+::mechgen\+::\+Derivative}
+    \subitem {\+\_\+\+\_\+init\+\_\+\+\_\+}, \hyperpage{14}
+    \subitem {add\+\_\+rxn\+\_\+if\+\_\+relevant}, \hyperpage{14}
+    \subitem {changed\+\_\+specie}, \hyperpage{14}
+    \subitem {coefficients}, \hyperpage{14}
+    \subitem {finalize}, \hyperpage{14}
+    \subitem {func\+\_\+def}, \hyperpage{15}
+    \subitem {func\+\_\+signature}, \hyperpage{15}
+    \subitem {input\+\_\+species}, \hyperpage{15}
+    \subitem {reactions}, \hyperpage{15}
+  \item {pecans\+::mechgen\+::\+Rate\+Expression}
+    \subitem {\+\_\+\+\_\+init\+\_\+\+\_\+}, \hyperpage{17}
+    \subitem {find\+\_\+rate\+\_\+by\+\_\+name}, \hyperpage{17}
+    \subitem {mark\+\_\+rate\+\_\+as\+\_\+needed}, \hyperpage{17}
+  \item {pecans\+::mechgen\+::\+Reaction}
+    \subitem {\+\_\+\+\_\+init\+\_\+\+\_\+}, \hyperpage{18}
+    \subitem {get\+\_\+product\+\_\+specie}, \hyperpage{18}
+    \subitem {get\+\_\+reactant\+\_\+specie}, \hyperpage{18}
+    \subitem {id}, \hyperpage{19}
+    \subitem {product\+\_\+species}, \hyperpage{19}
+    \subitem {products}, \hyperpage{19}
+    \subitem {rate\+\_\+str}, \hyperpage{19}
+    \subitem {reactant\+\_\+species}, \hyperpage{19}
+    \subitem {reactants}, \hyperpage{19}
+    \subitem {reset}, \hyperpage{19}
+  \item {pecans\+::mechgen\+::\+Reaction\+Specie}
+    \subitem {\+\_\+\+\_\+init\+\_\+\+\_\+}, \hyperpage{21}
+  \item {pecans\+::mechgen\+::\+Specie}
+    \subitem {\+\_\+\+\_\+init\+\_\+\+\_\+}, \hyperpage{22}
+    \subitem {find\+\_\+by\+\_\+name}, \hyperpage{22}
+    \subitem {name}, \hyperpage{22}
+    \subitem {reset}, \hyperpage{22}
+    \subitem {spec\+\_\+id}, \hyperpage{22}
+  \item {product\+\_\+species}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{19}
+  \item {products}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{19}
+
+  \indexspace
+
+  \item {rate\+\_\+str}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{19}
+  \item {reactant\+\_\+species}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{19}
+  \item {reactants}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{19}
+  \item {reactions}
+    \subitem {pecans\+::mechgen\+::\+Derivative}, \hyperpage{15}
+  \item {reset}
+    \subitem {pecans\+::mechgen\+::\+Reaction}, \hyperpage{19}
+    \subitem {pecans\+::mechgen\+::\+Specie}, \hyperpage{22}
+
+  \indexspace
+
+  \item {spec\+\_\+id}
+    \subitem {pecans\+::mechgen\+::\+Specie}, \hyperpage{22}
+
+\end{theindex}

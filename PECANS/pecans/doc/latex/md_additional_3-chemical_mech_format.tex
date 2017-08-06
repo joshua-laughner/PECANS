@@ -1,0 +1,92 @@
+\subsection*{The basics}
+
+Specifying a chemical mechanism requires at least two files\+:
+
+
+\begin{DoxyItemize}
+\item a {\ttfamily .spc} file that lists the species used in the reaction. (This helps catch typos in the next file.)
+\item a {\ttfamily .eqn} file that lists the chemical reactions that occur and their rate constants.
+\end{DoxyItemize}
+
+By requiring the species file, the mechanism generator can verify that all the species used in the reactions are expected. If there is a typo, say \char`\"{}\+I\+S\+P\+O\char`\"{} instead of \char`\"{}\+I\+S\+O\+P\char`\"{} for isoprene, the parser can alert you to this, because \char`\"{}\+I\+S\+P\+O\char`\"{} is not a defined species.
+
+There is one additional file that can be provided for each mechanism, which is a {\ttfamily .rate} file, which provides custom kinetic rate constants for that mechanism (more information below).
+
+When you execute {\ttfamily build\+\_\+pecans.\+py}, it finds the corresponding {\ttfamily .spc}, {\ttfamily .eqn}, and {\ttfamily .rate} (if present) files in the pecans/\+Mechanisms folder. It passes these files to {\ttfamily mechgen.\+py} in the pecans/ folder. That in turn reads those files and generates {\ttfamily chemderiv.\+pyx}, a Cython source file. {\ttfamily build\+\_\+pecans.\+py} then runs the {\ttfamily setup.\+py} script in the same directory as itself to convert {\ttfamily chemderiv.\+pyx} into a {\ttfamily .c} source file and compile that into a binary executable. All the {\ttfamily chemderiv.$\ast$} files will be placed in the pecans/ folder.
+
+\subsection*{P\+E\+C\+A\+NS format}
+
+The native P\+E\+C\+A\+NS format for the mechanism files is designed to be extremely simple. It is very much modeled on the Kinetic Pre-\/processor (K\+PP) format used in W\+R\+F-\/\+Chem, but distilled down to its essence.
+
+\subsubsection*{Species (.spc) file}
+
+List each species used in the mechanism, one per line. Capitalization matters.
+
+\subsubsection*{Reaction (.eqn) file}
+
+List each reaction, one per line, e.\+g.\+: \begin{DoxyVerb}NO + O3 = NO2 : ARR2( 1.40e-12, 1310.0, TEMP )
+\end{DoxyVerb}
+
+
+The reaction itself is defined before the {\ttfamily \+:}. Reactants and products must be separated by {\itshape either} an {\ttfamily =} or {\ttfamily -\/$>$}, i.\+e. \begin{DoxyVerb}NO + O3 = NO2
+\end{DoxyVerb}
+
+
+is the same as \begin{DoxyVerb}NO + O3 -> NO2
+\end{DoxyVerb}
+
+
+Each reactant and product must be separated by a {\ttfamily +}. A coefficient of 1 may be omitted, as in the previous examples, while non-\/unity coefficients must come before the species name to which they apply, e.\+g. \begin{DoxyVerb}1.0 NO + 1.0 O3 = 1.0 NO2
+\end{DoxyVerb}
+
+
+The space between the coefficient and the name is optional. The coefficient must be written so that Python\textquotesingle{}s {\ttfamily float()} function can understand it; {\ttfamily 1}, {\ttfamily 1.\+0}, {\ttfamily 1e0}, {\ttfamily 1.\+0e0}, {\ttfamily -\/1}, etc. are all valid.
+
+The rate constant for the reaction is given after the {\ttfamily \+:}. It can be one of three forms\+:
+
+
+\begin{DoxyEnumerate}
+\item A number that {\ttfamily float()} can intepret (see above for the coefficients)
+\item A call to a function defined in one of the rates files (next section)
+\item A string starting with {\ttfamily j} that indicates a photolysis rate ({\itshape not implemented})
+\end{DoxyEnumerate}
+
+In calls to a defined function, the variables {\ttfamily T\+E\+MP} and {\ttfamily C\+A\+IR} represent temperature in Kelvin and number density of air in molecules per cubic centimeter, respectively. E.\+g., \begin{DoxyVerb}ARR2( 1.40e-12, 1310.0, TEMP )
+\end{DoxyVerb}
+
+
+will call the {\ttfamily A\+R\+R2} function with temperature in Kelvin as the third argument.
+
+\subsubsection*{Rates (.rate) file}
+
+Reaction rates are, unfortunately, one place where it was necessary to require the user to accept a larger amount of complexity in order to provide sufficient flexibility in defining rate constants. Rate constant expressions can be defined as Cython {\ttfamily cdef} functions in two places\+:
+
+
+\begin{DoxyEnumerate}
+\item One of the {\ttfamily .rate} files in pecans/\+Rates. This is intended for standard rate constants distributed with the model.
+\item A {\ttfamily .rate} file with the same name as the mechanism being compiled, stored in the pecans/\+Mechanisms folder. This is intended for user added reactions, although users are welcome to add custom files in the Rates folder for rate constant expressions which they wish to use across multiple reactions.
+\end{DoxyEnumerate}
+
+Rate expression must be written as valid Cython functions, specifically {\ttfamily cdef} functions (not {\ttfamily def} or {\ttfamily cpdef}, as {\ttfamily cdef} should be the fastest to call). These look similar to Python function definitions. An example is\+: \begin{DoxyVerb}cdef ko1d(double TEMP, double CAIR):
+    cdef double kN
+    cdef double k0
+
+    kN = 0.78084 * CAIR * 1.8e-11 * exp(107 / TEMP)
+    k0 = 0.20946 * CAIR * 3.2e-11 * exp(67 / TEMP)
+    return kN + k0
+\end{DoxyVerb}
+
+
+The necessary parts are\+:
+\begin{DoxyItemize}
+\item The keyword {\ttfamily cdef} at the beginning
+\item The name it will be called by ({\ttfamily ko1d} here)
+\item The function arguments in parentheses ({\ttfamily T\+E\+MP} and {\ttfamily C\+A\+IR}), each preceeded by the type {\ttfamily double}.
+\item A {\ttfamily \+:} after the closing parenthesis around the arguments
+\item Any variables used within the function that are not inputs must be declared with the type declaration {\ttfamily cdef double}
+\item Mathematical expression can be written using normal Python syntax (n.\+b. that raising to a power is done with {\ttfamily $\ast$$\ast$}, not {\ttfamily $^\wedge$}). The mathematical functions {\ttfamily exp}, {\ttfamily sqrt}, {\ttfamily log} (natural logarithm), and {\ttfamily log10} (log base 10) are available.
+\item Return the final value of the rate constant with the {\ttfamily return} keyword.
+\item For P\+E\+C\+A\+NS, temperature in Kelvin and number density of air in molec. / cm$^\wedge$3 must be the variables T\+E\+MP and C\+A\+IR, because the parser looks for those specifically to make sure their position matches in any calls in the {\ttfamily .eqn} file.
+\end{DoxyItemize}
+
+As many of these rate expression may be defined in a single {\ttfamily .rate} file as you wish. The parser will raise an exception if the same name is defined more than once across all {\ttfamily .rate} files read. 

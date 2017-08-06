@@ -1,0 +1,98 @@
+\hypertarget{classpecans_1_1mechgen_1_1RateExpression}{}\section{pecans.\+mechgen.\+Rate\+Expression Class Reference}
+\label{classpecans_1_1mechgen_1_1RateExpression}\index{pecans.\+mechgen.\+Rate\+Expression@{pecans.\+mechgen.\+Rate\+Expression}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1RateExpression_aa70aebc347ad75a2d7a0ceeb652e6f6e}{\+\_\+\+\_\+init\+\_\+\+\_\+} (self, rate\+\_\+string, rate\+\_\+file, file\+\_\+line\+\_\+number)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1RateExpression_a5f155e602ddebc7fd0a0e4b0a9f29cd9}{find\+\_\+rate\+\_\+by\+\_\+name} (cls, rate\+\_\+name)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1RateExpression_af803879fa43b9fd746bfd9b66c4d2d1f}{mark\+\_\+rate\+\_\+as\+\_\+needed} (cls, rate\+\_\+call)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries used\+\_\+in\+\_\+mech}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_ab04894c55dbe0031041e9ebe05dc8006}{}\label{classpecans_1_1mechgen_1_1RateExpression_ab04894c55dbe0031041e9ebe05dc8006}
+
+\item 
+{\bfseries declaring\+\_\+file}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_a59cb46348e550bd9a06e059944c51c03}{}\label{classpecans_1_1mechgen_1_1RateExpression_a59cb46348e550bd9a06e059944c51c03}
+
+\item 
+{\bfseries file\+\_\+line}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_a4bcc39375f52db34b759c1e88f6fb09e}{}\label{classpecans_1_1mechgen_1_1RateExpression_a4bcc39375f52db34b759c1e88f6fb09e}
+
+\item 
+{\bfseries ndens\+\_\+air\+\_\+ind}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_a9713cbbd3d721163756021e5f5265ce3}{}\label{classpecans_1_1mechgen_1_1RateExpression_a9713cbbd3d721163756021e5f5265ce3}
+
+\item 
+{\bfseries body}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_a76025977020514b92885973477e94fd2}{}\label{classpecans_1_1mechgen_1_1RateExpression_a76025977020514b92885973477e94fd2}
+
+\item 
+{\bfseries rate\+\_\+name}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_a0c87729fceb6f1c26de999ff99c82544}{}\label{classpecans_1_1mechgen_1_1RateExpression_a0c87729fceb6f1c26de999ff99c82544}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+list {\bfseries instances} = \mbox{[}$\,$\mbox{]}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_aab61de56261423df2138b7f354ce831a}{}\label{classpecans_1_1mechgen_1_1RateExpression_aab61de56261423df2138b7f354ce831a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Class that holds all the defined rate constant expression functions
+\end{DoxyVerb}
+ 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{pecans\+::mechgen\+::\+Rate\+Expression@{pecans\+::mechgen\+::\+Rate\+Expression}!\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}}
+\index{\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}!pecans\+::mechgen\+::\+Rate\+Expression@{pecans\+::mechgen\+::\+Rate\+Expression}}
+\subsubsection[{\texorpdfstring{\+\_\+\+\_\+init\+\_\+\+\_\+(self, rate\+\_\+string, rate\+\_\+file, file\+\_\+line\+\_\+number)}{__init__(self, rate_string, rate_file, file_line_number)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Rate\+Expression.\+\_\+\+\_\+init\+\_\+\+\_\+ (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{rate\+\_\+string, }
+\item[{}]{rate\+\_\+file, }
+\item[{}]{file\+\_\+line\+\_\+number}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_aa70aebc347ad75a2d7a0ceeb652e6f6e}{}\label{classpecans_1_1mechgen_1_1RateExpression_aa70aebc347ad75a2d7a0ceeb652e6f6e}
+\begin{DoxyVerb}Create a new instance of RateExpression that holds information about a rate expression function.
+That instance is stored in the class variable instances (RateExpression.instances), so there is
+no need to store the returned instance.
+:param rate_string: the string containing the entire function definition for the rate expression.
+:param rate_file: the file that the definition was read from. Used to print more helpful error messages.
+:param file_line_number: the line number in the file where the definition began. Again, for helpful error
+messages.
+:return: instance of RateExpression, which is also stored in RateExpression.instances.
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\index{pecans\+::mechgen\+::\+Rate\+Expression@{pecans\+::mechgen\+::\+Rate\+Expression}!find\+\_\+rate\+\_\+by\+\_\+name@{find\+\_\+rate\+\_\+by\+\_\+name}}
+\index{find\+\_\+rate\+\_\+by\+\_\+name@{find\+\_\+rate\+\_\+by\+\_\+name}!pecans\+::mechgen\+::\+Rate\+Expression@{pecans\+::mechgen\+::\+Rate\+Expression}}
+\subsubsection[{\texorpdfstring{find\+\_\+rate\+\_\+by\+\_\+name(cls, rate\+\_\+name)}{find_rate_by_name(cls, rate_name)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Rate\+Expression.\+find\+\_\+rate\+\_\+by\+\_\+name (
+\begin{DoxyParamCaption}
+\item[{}]{cls, }
+\item[{}]{rate\+\_\+name}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_a5f155e602ddebc7fd0a0e4b0a9f29cd9}{}\label{classpecans_1_1mechgen_1_1RateExpression_a5f155e602ddebc7fd0a0e4b0a9f29cd9}
+\begin{DoxyVerb}Given a rate expression name, finds the instance that corresponds to it.
+:param rate_name: The name of the rate expression, as a string
+:return: the instance of RateExpression with that name. Raises a KeyError if one is not found.
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Rate\+Expression@{pecans\+::mechgen\+::\+Rate\+Expression}!mark\+\_\+rate\+\_\+as\+\_\+needed@{mark\+\_\+rate\+\_\+as\+\_\+needed}}
+\index{mark\+\_\+rate\+\_\+as\+\_\+needed@{mark\+\_\+rate\+\_\+as\+\_\+needed}!pecans\+::mechgen\+::\+Rate\+Expression@{pecans\+::mechgen\+::\+Rate\+Expression}}
+\subsubsection[{\texorpdfstring{mark\+\_\+rate\+\_\+as\+\_\+needed(cls, rate\+\_\+call)}{mark_rate_as_needed(cls, rate_call)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Rate\+Expression.\+mark\+\_\+rate\+\_\+as\+\_\+needed (
+\begin{DoxyParamCaption}
+\item[{}]{cls, }
+\item[{}]{rate\+\_\+call}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1RateExpression_af803879fa43b9fd746bfd9b66c4d2d1f}{}\label{classpecans_1_1mechgen_1_1RateExpression_af803879fa43b9fd746bfd9b66c4d2d1f}
+\begin{DoxyVerb}Marks that the specified rate expression is used in the current mechanism, which causes it to be
+inlined in the chemderiv.pyx file.
+:param rate_call: the call to the rate expression, e.g. ARR2( 1.2e-12, 1310.0, TEMP )
+:return: none
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/josh/\+Documents/\+Python/\+Virt\+Envs/\+Chem\+Model/\+P\+E\+C\+A\+N\+S/pecans/mechgen.\+py\end{DoxyCompactItemize}

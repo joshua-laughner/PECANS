@@ -1,0 +1,170 @@
+\hypertarget{classpecans_1_1mechgen_1_1Reaction}{}\section{pecans.\+mechgen.\+Reaction Class Reference}
+\label{classpecans_1_1mechgen_1_1Reaction}\index{pecans.\+mechgen.\+Reaction@{pecans.\+mechgen.\+Reaction}}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_af015fb33f81a10a78d7e6ded5cf87be3}{id} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_ac34f1f9597da3db1006890ca85e6d0a1}{reactants} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_a8ee6cd94ee1de2c976232a5fa48d6c49}{reactant\+\_\+species} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_a9890da73e627898c56c2fe1a09390e80}{products} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_a1f6e4a9ad710e9a3636477a5d27a81c4}{product\+\_\+species} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_ad25ecc71077556da29052f6afec9545f}{rate\+\_\+str} (self)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_adf16a0cf2950aab7ea62aefebcd4789f}{\+\_\+\+\_\+init\+\_\+\+\_\+} (self, \hyperlink{classpecans_1_1mechgen_1_1Reaction_ac34f1f9597da3db1006890ca85e6d0a1}{reactants}, \hyperlink{classpecans_1_1mechgen_1_1Reaction_a9890da73e627898c56c2fe1a09390e80}{products}, rate\+\_\+fxn)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_a9acdeaab1e5420929c7500e11c78b41d}{get\+\_\+reactant\+\_\+specie} (self, specie)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_a92487621cd9e2227ee81b4061caf502e}{get\+\_\+product\+\_\+specie} (self, specie)
+\item 
+def \hyperlink{classpecans_1_1mechgen_1_1Reaction_ae1abd8da5f183602e6ec3602bc7f2f22}{reset} (cls)
+\item 
+def {\bfseries \+\_\+\+\_\+str\+\_\+\+\_\+} (self)\hypertarget{classpecans_1_1mechgen_1_1Reaction_a074ffdf5307e850241772dbfa2c3d17a}{}\label{classpecans_1_1mechgen_1_1Reaction_a074ffdf5307e850241772dbfa2c3d17a}
+
+\item 
+def {\bfseries \+\_\+\+\_\+repr\+\_\+\+\_\+} (self)\hypertarget{classpecans_1_1mechgen_1_1Reaction_aa51f5848ba5bc1689c603dbc1a68192d}{}\label{classpecans_1_1mechgen_1_1Reaction_aa51f5848ba5bc1689c603dbc1a68192d}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries next\+\_\+id}\hypertarget{classpecans_1_1mechgen_1_1Reaction_a8d26627bd95499217692f691c2ec3d42}{}\label{classpecans_1_1mechgen_1_1Reaction_a8d26627bd95499217692f691c2ec3d42}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int {\bfseries next\+\_\+id} = 0\hypertarget{classpecans_1_1mechgen_1_1Reaction_a86b4bbe81c34b5a34ab1c8ab660d8bfa}{}\label{classpecans_1_1mechgen_1_1Reaction_a86b4bbe81c34b5a34ab1c8ab660d8bfa}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Class representing chemical reactions in a mechanism
+\end{DoxyVerb}
+ 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}}
+\index{\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{\+\_\+\+\_\+init\+\_\+\+\_\+(self, reactants, products, rate\+\_\+fxn)}{__init__(self, reactants, products, rate_fxn)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+\_\+\+\_\+init\+\_\+\+\_\+ (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{reactants, }
+\item[{}]{products, }
+\item[{}]{rate\+\_\+fxn}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_adf16a0cf2950aab7ea62aefebcd4789f}{}\label{classpecans_1_1mechgen_1_1Reaction_adf16a0cf2950aab7ea62aefebcd4789f}
+\begin{DoxyVerb}Create an instance of Reaction that contains the reactants, products, and rate constant
+:param reactants: a list, tuple, or set of instances of ReactionSpecie representing the reactants
+:param products: a list, tuple, or set of instances of ReactionSpecie representing the products
+:param rate_fxn: a representation of the rate constant, either as a function or value
+:return: instance of Reaction
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!get\+\_\+product\+\_\+specie@{get\+\_\+product\+\_\+specie}}
+\index{get\+\_\+product\+\_\+specie@{get\+\_\+product\+\_\+specie}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{get\+\_\+product\+\_\+specie(self, specie)}{get_product_specie(self, specie)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+get\+\_\+product\+\_\+specie (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{specie}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_a92487621cd9e2227ee81b4061caf502e}{}\label{classpecans_1_1mechgen_1_1Reaction_a92487621cd9e2227ee81b4061caf502e}
+\begin{DoxyVerb}Given an instance of Specie, returns the first corresponding product ReactionSpecie of that type of Specie
+:param specie: an instance of Specie representing the chemical specie in question
+:return: an instance of ReactionSpecie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!get\+\_\+reactant\+\_\+specie@{get\+\_\+reactant\+\_\+specie}}
+\index{get\+\_\+reactant\+\_\+specie@{get\+\_\+reactant\+\_\+specie}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{get\+\_\+reactant\+\_\+specie(self, specie)}{get_reactant_specie(self, specie)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+get\+\_\+reactant\+\_\+specie (
+\begin{DoxyParamCaption}
+\item[{}]{self, }
+\item[{}]{specie}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_a9acdeaab1e5420929c7500e11c78b41d}{}\label{classpecans_1_1mechgen_1_1Reaction_a9acdeaab1e5420929c7500e11c78b41d}
+\begin{DoxyVerb}Given an instance of Specie, returns the first corresponding reactant ReactionSpecie of that type of Specie
+:param specie: an instance of Specie representing the chemical specie in question
+:return: an instance of ReactionSpecie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!id@{id}}
+\index{id@{id}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{id(self)}{id(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+id (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_af015fb33f81a10a78d7e6ded5cf87be3}{}\label{classpecans_1_1mechgen_1_1Reaction_af015fb33f81a10a78d7e6ded5cf87be3}
+\begin{DoxyVerb}The unique numerical ID of the reaction
+:return: the ID as an integer
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!product\+\_\+species@{product\+\_\+species}}
+\index{product\+\_\+species@{product\+\_\+species}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{product\+\_\+species(self)}{product_species(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+product\+\_\+species (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_a1f6e4a9ad710e9a3636477a5d27a81c4}{}\label{classpecans_1_1mechgen_1_1Reaction_a1f6e4a9ad710e9a3636477a5d27a81c4}
+\begin{DoxyVerb}Returns the unique species present as products
+:return: a tuple of instances of Specie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!products@{products}}
+\index{products@{products}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{products(self)}{products(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+products (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_a9890da73e627898c56c2fe1a09390e80}{}\label{classpecans_1_1mechgen_1_1Reaction_a9890da73e627898c56c2fe1a09390e80}
+\begin{DoxyVerb}Returns the products of the reaction
+:return: a tuple of instances of ReactionSpecie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!rate\+\_\+str@{rate\+\_\+str}}
+\index{rate\+\_\+str@{rate\+\_\+str}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{rate\+\_\+str(self)}{rate_str(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+rate\+\_\+str (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_ad25ecc71077556da29052f6afec9545f}{}\label{classpecans_1_1mechgen_1_1Reaction_ad25ecc71077556da29052f6afec9545f}
+\begin{DoxyVerb}Returns a representation of the rate constant as a string
+NOTE: behavior may change
+:return: a string, a number as a string or the name of the function given
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!reactant\+\_\+species@{reactant\+\_\+species}}
+\index{reactant\+\_\+species@{reactant\+\_\+species}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{reactant\+\_\+species(self)}{reactant_species(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+reactant\+\_\+species (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_a8ee6cd94ee1de2c976232a5fa48d6c49}{}\label{classpecans_1_1mechgen_1_1Reaction_a8ee6cd94ee1de2c976232a5fa48d6c49}
+\begin{DoxyVerb}Returns the unique species present as reactants
+:return: a tuple of instances of Specie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!reactants@{reactants}}
+\index{reactants@{reactants}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{reactants(self)}{reactants(self)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+reactants (
+\begin{DoxyParamCaption}
+\item[{}]{self}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_ac34f1f9597da3db1006890ca85e6d0a1}{}\label{classpecans_1_1mechgen_1_1Reaction_ac34f1f9597da3db1006890ca85e6d0a1}
+\begin{DoxyVerb}Returns the reactants of the reaction
+:return: a tuple of instances of ReactionSpecie
+\end{DoxyVerb}
+ \index{pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}!reset@{reset}}
+\index{reset@{reset}!pecans\+::mechgen\+::\+Reaction@{pecans\+::mechgen\+::\+Reaction}}
+\subsubsection[{\texorpdfstring{reset(cls)}{reset(cls)}}]{\setlength{\rightskip}{0pt plus 5cm}def pecans.\+mechgen.\+Reaction.\+reset (
+\begin{DoxyParamCaption}
+\item[{}]{cls}
+\end{DoxyParamCaption}
+)}\hypertarget{classpecans_1_1mechgen_1_1Reaction_ae1abd8da5f183602e6ec3602bc7f2f22}{}\label{classpecans_1_1mechgen_1_1Reaction_ae1abd8da5f183602e6ec3602bc7f2f22}
+\begin{DoxyVerb}Restores the class variables to their initial state
+:return: nothing
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/josh/\+Documents/\+Python/\+Virt\+Envs/\+Chem\+Model/\+P\+E\+C\+A\+N\+S/pecans/mechgen.\+py\end{DoxyCompactItemize}

@@ -9,7 +9,6 @@ from glob import glob
 import os.path
 import re
 
-
 _mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
 
 derivative_file = os.path.join(_mydir, 'chemderiv.pyx')
@@ -419,13 +418,27 @@ class Derivative:
 
 
 class RateExpression:
+    """
+    Class that holds all the defined rate constant expression functions
+    """
     instances = []
 
     def __init__(self, rate_string, rate_file, file_line_number):
+        """
+        Create a new instance of RateExpression that holds information about a rate expression function.
+        That instance is stored in the class variable instances (RateExpression.instances), so there is
+        no need to store the returned instance.
+        :param rate_string: the string containing the entire function definition for the rate expression.
+        :param rate_file: the file that the definition was read from. Used to print more helpful error messages.
+        :param file_line_number: the line number in the file where the definition began. Again, for helpful error
+        messages.
+        :return: instance of RateExpression, which is also stored in RateExpression.instances.
+        """
         self.used_in_mech = False
         self.declaring_file = os.path.abspath(rate_file)
         self.file_line = file_line_number
-        self.rate_name, self.num_inputs, self.temperature_ind, self.ndens_air_ind, self.body = RateExpression._check_rate_string(rate_string)
+        self.rate_name, self.num_inputs, self.temperature_ind, self.ndens_air_ind = RateExpression._check_rate_string(rate_string)
+        self.body = rate_string
         for rate_ex in RateExpression.instances:
             if self.rate_name == rate_ex.rate_name:
                 raise RateDefError('Rate expression named "{}" already exists at line {} of file {}'.
@@ -434,6 +447,20 @@ class RateExpression:
 
     @classmethod
     def _check_rate_string(cls, rate_string, is_call=False):
+        """
+        Verify that the given rate string is a valid rate expression function.
+        :param rate_string: the string containing at least the cdef <name>( args ): bit.
+        :param is_call: optional boolean, default False. If False, this function assumes that the string is a definition
+        of the function, and checks for things like the "cdef" keyword and "double" type for all inputs. If True, then
+        it is assumed that the string is a call to the function rather than the definition, and things not relevant to a
+        call are ignored. This allows one to use this function to parse either a definition or call and verify that the
+        call has the same characteristics as the definition.
+        :return: four values:
+            function_name - the name of the function
+            n_inputs - how many inputs to the function
+            index_temperature - which of the inputs is the temperature value (0 based)
+            index_air_number_density - which of the inputs is the number density of air (0 based)
+        """
         function_def = rate_string.split(':')[0]
 
         m = re.match('[cp]*def', rate_string)
@@ -465,10 +492,15 @@ class RateExpression:
             elif ndens_air_variable in inpt:
                 index_air_number_density = function_inputs.index(inpt)
 
-        return function_name, len(function_inputs), index_temperature, index_air_number_density, rate_string
+        return function_name, len(function_inputs), index_temperature, index_air_number_density
 
     @classmethod
     def find_rate_by_name(cls, rate_name):
+        """
+        Given a rate expression name, finds the instance that corresponds to it.
+        :param rate_name: The name of the rate expression, as a string
+        :return: the instance of RateExpression with that name. Raises a KeyError if one is not found.
+        """
         for rate_ex in cls.instances:
             if rate_ex.rate_name == rate_name:
                 return rate_ex
@@ -476,12 +508,23 @@ class RateExpression:
 
     @classmethod
     def mark_rate_as_needed(cls, rate_call):
+        """
+        Marks that the specified rate expression is used in the current mechanism, which causes it to be
+        inlined in the chemderiv.pyx file.
+        :param rate_call: the call to the rate expression, e.g. ARR2( 1.2e-12, 1310.0, TEMP )
+        :return: none
+        """
         rate_name = cls._check_rate_call(rate_call)
         cls.find_rate_by_name(rate_name).used_in_mech = True
 
     @classmethod
     def _check_rate_call(cls, call_string):
-        call_name, n_inputs, i_temp, i_cair, _ = cls._check_rate_string(call_string, is_call=True)
+        """
+        Checks the given rate expression call against the definition stored in RateExpression.instance
+        :param call_string: the call to the rate expression, e.g. ARR2( 1.2e-12, 1310.0, TEMP )
+        :return: the name of the call, in the example for call_string, "ARR2"
+        """
+        call_name, n_inputs, i_temp, i_cair = cls._check_rate_string(call_string, is_call=True)
         try:
             rate_ex = cls.find_rate_by_name(call_name)
         except KeyError as err:
@@ -657,9 +700,26 @@ def _iter_react_prod(line):
         yield ReactionSpecie(specie, coeff)
 
 
-def _read_rate_def_files(additional_files):
-    rate_files = glob(os.path.join(rate_expr_include_dir, '*.rate')) + list(additional_files)
+def _read_rate_def_files(additional_file):
+    """
+    Reads in all *.rate files in the Rates subdirectory, plus any files specified in the additional_file list
+    :param additional_file: a list of additional files that have rate expression definitions
+    :return: none. All rate expressions are added to RateExpression.instances.
+    """
+    if additional_file is not None:
+        if not isinstance(additional_file, str):
+            raise TypeError('additional_file must be a string')
+        elif not os.path.isfile(additional_file):
+            raise IOError('additiona_file ({}) does not exist'.format(additional_file))
+
+    rate_files = glob(os.path.join(rate_expr_include_dir, '*.rate'))
+    if additional_file is not None:
+        rate_files.append(additional_file)
+
     for rfile in rate_files:
+        if not os.path.isfile(rfile):
+            raise IOError('Rates file {} does not exist'.format(rfile))
+
         reading_rate = False
         curr_rate_expr = []
         with open(rfile, 'r') as f:
@@ -678,18 +738,19 @@ def _read_rate_def_files(additional_files):
             RateExpression('\n'.join(curr_rate_expr), rfile, def_line_num)
 
 
-def generate_pecans_mechanism(species_file, reactions_file, *extra_rate_def_files):
+def generate_pecans_mechanism(species_file, reactions_file, extra_rate_def_file=None):
     """
     Main function that generates a mechanism file for the PECANS style inputs. Any other
     input file style must have an equivalent primary function that reads rate expression
     files, reads the species file, and reads the reactions file.
     :param species_file: the file defining all the species included in the mechanism
     :param reactions_file: the file defining the reactions that comprise the mechanism
-    :param *extra_rate_def_files: any additional files beyond those in the "Rates" subdirectory
+    :param *extra_rate_def_file: any additional files beyond those in the "Rates" subdirectory
      that define rate constant expressions.
     :return:
     """
-    _read_rate_def_files(extra_rate_def_files)
+    print('Building p')
+    _read_rate_def_files(extra_rate_def_file)
     _parse_pecan_species(species_file)
     return _parse_pecan_reactions(reactions_file)
 
@@ -744,6 +805,20 @@ def _generate_interface_function(derivatives):
     lines.append(pyx_indent + 'return {{ {0} }}'.format(', '.join(dict_str)))
     return lines
 
+# Add styles and their respective parsing functions to this dictionary so that there
+# is a single object describing which parsing function to call for which style
+
+style_parse_fxn_dict = {'pecans':generate_pecans_mechanism}
+
+def generate_mechanism(mechanism_style, species_file, reactions_file, additional_rates_file=None):
+    try:
+        build_fxn = style_parse_fxn_dict[mechanism_style]
+    except KeyError:
+        raise NotImplementedError('The mechgen.style_parse_fxn_dict does not have a parsing function listed for style '
+                                  '{}'.format(mechanism_style))
+
+    reactions = build_fxn(species_file, reactions_file, additional_rates_file)
+    generate_chemderiv_file(reactions=reactions)
 
 def _main():
     """
@@ -751,12 +826,8 @@ def _main():
     :return: nothing
     """
     args = _get_args()
-    if args.style.lower() == 'pecans':
-        rxns = generate_pecans_mechanism(args.species_file, args.reactions_file)
-    else:
-        raise NotImplementedError('No parser implemented for style {}'.format(args.style))
-
-    generate_chemderiv_file(rxns)
+    generate_mechanism(mechanism_style=args.style.lower(), species_file=args.species_file,
+                       reactions_file=args.reactions_file)
 
 
 if __name__ == '__main__':
