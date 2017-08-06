@@ -61,7 +61,8 @@ def _build_mechanism(mechanism, mechanism_style):
         extra_rate_file = None
 
     print('Building {}'.format(mechgen.derivative_file))
-    mechgen.generate_mechanism(mechanism_style=mechanism_style, species_file=species_file, reactions_file=reactions_file)
+    mechgen.generate_mechanism(mechanism_style=mechanism_style, species_file=species_file,
+                               reactions_file=reactions_file, additional_rates_file=extra_rate_file)
 
     run_setup(os.path.join(_mydir, 'setup.py'), ['build_ext', '--inplace'])
 
