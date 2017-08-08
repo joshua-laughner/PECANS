@@ -6,7 +6,6 @@ cdef MCM_J(double L, double M, double N, double HOUR):
     cdef int time_lst[48]
     cdef int time_index
     cdef double ZENITH
-    # Apparently Faster : http://cython.readthedocs.io/en/latest/src/userguide/numpy_tutorial.html
 
     sza[:] = [52.233, 58.185, 64.125, 70.014, 75.819, 81.504, 87.032, 92.361, 97.442, \
           102.216, 106.618, 110.57, 113.987, 116.779, 118.855, 120.141, 120.582, \
@@ -20,7 +19,7 @@ cdef MCM_J(double L, double M, double N, double HOUR):
           14.8085, 15.3191, 15.8298, 16.3404, 16.8511, 17.3617, 17.8723, 18.383, 18.8936, 19.4043, \
           19.9149, 20.4255, 20.9362, 21.4468, 21.9574, 22.4681, 22.9787, 23.4894, 24.0]
 
-    time_index = time_lst.index(int_min(time_lst, key = lambda element: abs(element - HOUR)))
+    time_index = time_lst.index(min(time_lst, key = lambda element: abs(element - HOUR)))
     ZENITH = sza[time_index]
 
     return L * cos(ZENITH ** M) * exp(- N * (cos(ZENITH)) ** -1)

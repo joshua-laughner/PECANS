@@ -60,3 +60,6 @@ cdef FALL(double A0, double B0, double C0, double A1, double B1, double C1, doub
   kratio = k0 / k1
 
   return (k0 / (1 + kratio)) * CF ** (1 / (1 + log10(kratio)**2))
+
+cdef THERMAL_T2(double A0, double B0, double TEMP):
+  return (A0)*TEMP**2*exp(-(B0)/TEMP)
