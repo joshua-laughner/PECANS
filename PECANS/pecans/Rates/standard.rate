@@ -1,33 +1,62 @@
 cdef ARR2(double A0, double B0, double TEMP):
     return A0 * exp(-B0 / TEMP)
 
-cdef k46(double TEMP, double CAIR):
+cdef k46(double TEMP, double C_M):
     cdef double k0
     cdef double k2
     cdef double k3
 
     k0=2.4e-14 * exp(460 / TEMP)
     k2=2.7e-17 * exp(2199 / TEMP)
-    k3=6.5e-34 * exp(1335 / TEMP) * CAIR
+    k3=6.5e-34 * exp(1335 / TEMP) * C_M
 
     return k0+k3/(1+k3/k2)
 
-cdef ko1d(double TEMP, double CAIR):
+cdef ko1d(double TEMP, double C_M):
     cdef double kN
     cdef double k0
 
-    kN = 0.78084 * CAIR * 1.8e-11 * exp(107 / TEMP)
-    k0 = 0.20946 * CAIR * 3.2e-11 * exp(67 / TEMP)
+    kN = 0.78084 * C_M * 1.8e-11 * exp(107 / TEMP)
+    k0 = 0.20946 * C_M * 3.2e-11 * exp(67 / TEMP)
     return kN + k0
 
-cdef TROE(double k0_300K, double n, double kinf_300K, double m, double TEMP, double CAIR):
+cdef TROE(double k0_300K, double n, double kinf_300K, double m, double TEMP, double C_M):
     cdef double zt_help
     cdef double k0_T
     cdef double kinf_T
     cdef double k_ratio
 
     zt_help = 300.0 / TEMP;
-    k0_T    = k0_300K   * zt_help ** n * CAIR   # k_0   at current T
+    k0_T    = k0_300K   * zt_help ** n * C_M   # k_0   at current T
     kinf_T  = kinf_300K * zt_help ** m          # k_inf at current T
     k_ratio = k0_T/kinf_T
     return k0_T/(1.0 + k_ratio)*0.6 ** (1.0 / (1.0+log10(k_ratio)**2))
+
+
+cdef TROEE(double A, double B, double k0_300K, double n, double kinf_300K, double m, double TEMP, double C_M):
+  cdef double zt_help
+  cdef double k0_T
+  cdef double kinf_T
+  cdef double k_ratio
+  cdef double troe
+
+  zt_help = 300 / TEMP;
+  k0_T    = k0_300K   * zt_help ** (n) * C_M
+  kinf_T  = kinf_300K * zt_help ** (m)
+  k_ratio = k0_T / kinf_T
+  troe   = k0_T / (1+k_ratio)*0.6**(1 / (1+log10(k_ratio)**2))
+
+  return A * exp( - B/TEMP) * troe
+
+cdef FALL(double A0, double B0, double C0, double A1, double B1, double C1, double CF, double TEMP, double C_M):
+  cdef double k0
+  cdef double k1
+  cdef double kinf_T
+  cdef double kratio
+
+  k0 = A0 * exp(-B0/TEMP) * (TEMP / 300)**C0
+  k1 = A1 * exp(-B1/TEMP) * (TEMP / 300)**C1
+  k0 = k0 * C_M
+  kratio = k0 / k1
+
+  return (k0 / (1 + kratio)) * CF ** (1 / (1 + log10(kratio)**2))
