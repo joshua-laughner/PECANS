@@ -22,140 +22,12 @@ _mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
 derivative_file = os.path.join(_mydir, 'chemderiv.pyx')
 pyx_indent = '    '
 
-
-############# SPECIFIC J Definitions ###############
-
-MCM_J_Parameters = {
-    #  in form L, M, N for use in MCM J equation :
-    #  J = L * cosX ^ m * EXP(-N * secX), with X = solar zenith
-    19 : [1.482e-06, 0.396, 0.298,1],
-    14 : [2.879e-05, 1.067, 0.358,1],
-    13 : [7.344e-06, 1.202, 0.417,1],
-    20 : [7.600e-04, 0.396, 0.298,1],
-    17 : [7.914e-05, 0.764, 0.364,1],
-    7 : [2.644e-03, 0.261, 0.288,1],
-    56 : [4.365e-05, 1.089, 0.323,1],
-    54 : [4.095e-06, 1.111, 0.316,1],
-    53 : [2.485e-06, 1.196, 0.328,1],
-    55 : [1.135e-05, 0.974, 0.309]
-    }
-
-J_defins = {
-    # R2smh Def : [TUV or MCM definition, which rate number, coefficient]
-    'Pj_o33p': ['TUV_J', 3,1],
-    'Pj_o31d': ['TUV_J',  2,1],
-    'Pj_h2o2': ['TUV_J',  5,1],
-    'Pj_no2': ['TUV_J',  6,1],
-    'Pj_no3o2': ['TUV_J', 7,1],
-    'Pj_no3o': ['TUV_J',  8,1],
-    'Pj_hno3': ['TUV_J',  13,1],
-    'Pj_hno4': ['TUV_J', 14,1],
-    'Pj_ch2om': ['TUV_J',  19,1],
-    'Pj_ch2or': ['TUV_J',  18,1],
-    'Pj_glyc': ['TUV_J',  54,1],
-    'Pj_bald': ['MCM_J', 19,1],
-    'Pj_uald': ['MCM_J',  13,1],
-    'Pj_ald': ['MCM_J',  14,1],
-    'Pj_hpald': ['MCM_J', 20,1],
-    'Pj_ibutald': ['MCM_J', 17,1],
-    'Pj_hno2': ['MCM_J',  7,1],
-    'Pj_noa': ['MCM_J', 56,1],
-    'Pj_mpn': ['TUV_J', 27,1], # methyl peroxy nitrate
-    'Pj_onit1': ['MCM_J', 53,1], # MCM n-propyl nitrate photolysis cross-section http://cohen.cchem.berkeley.edu/Portals/1/data/new_RONO2_mechanism.pdf
-    'Pj_onitOH1': ['MCM_J', 53,(1/3)], # MCM n-propyl nitrate photolysis cross-section, divided by 3 due to the hydroxy group (Roberts and Fajer, 1989)
-    'Pj_onitOH3': ['MCM_J', 55,(1/3)], # MCM tert-butyl nitrate photolysis cross-section, divided by 3 due to the hydroxy group (Roberts nd Fajer, 1989)
-        # J = integral (quantum yeild * abs cross section * actinic flux dwavelength)
-        # Jaltered = integral (quantum yeild/3 * abs cross section * actinic flux dwavelength)
-        # which is 1/3 * integral (quantum yeild * abs cross section * actinic flux dwavelength)
-        # and therefore Jaltered = J * 1/3. Nice and Simple!
-    'Pj_iprno3': ['TUV_J', 33,1],
-    'Pj_pana': ['TUV_J', 38,1],
-    'Pj_panb': ['TUV_J', 39,1],
-    'Pj_mvk': ['TUV_J', 44,1],
-    'Pj_macr': ['TUV_J', 43,1],
-    'Pj_ch3o2h': ['TUV_J', 24,1],
-    'Pj_ch3cho': ['TUV_J', 20,1],
-    'Pj_ch3cocho': ['TUV_J', 55,1],
-    'Pj_ch3coo2h': ['TUV_J', 58,1],
-    'Pj_ch3coch3': ['TUV_J', 48,1],
-    'Pj_ch3coc2h5': ['TUV_J', 49,1],
-    'Pj_hcochob': ['TUV_J', 54,1],
-    'Pj_hcocho': ['TUV_J', 53,1],
-    'Pj_hcochoc': ['TUV_J', 52,1]}
-
-""" TUV photolysis Notes
-   1 = O2 -> O + O
-   2 = O3 -> O2 + O(1D)
-   3 = O3 -> O2 + O(3P)
-   4 = HO2 -> OH + O
-   5 = H2O2 -> 2 OH
-   6 = NO2 -> NO + O(3P)
-   7 = NO3 -> NO + O2
-   8 = NO3 -> NO2 + O(3P)
-   9 = N2O -> N2 + O(1D)
-  10 = N2O5 -> NO3 + NO + O(3P)
-  11 = N2O5 -> NO3 + NO2
-  12 = HNO2 -> OH + NO
-  13 = HNO3 -> OH + NO2
-  14 = HNO4 -> HO2 + NO2
-  15 = NO3-(aq) -> NO2(aq) + O-
-  16 = NO3-(aq) -> NO2-(aq) + O(3P)
-  17 = NO3-(aq) with qy=1
-  18 = CH2O -> H + HCO
-  19 = CH2O -> H2 + CO
-  20 = CH3CHO -> CH3 + HCO
-  21 = CH3CHO -> CH4 + CO
-  22 = CH3CHO -> CH3CO + H
-  23 = C2H5CHO -> C2H5 + HCO
-  24 = CH3OOH -> CH3O + OH
-  25 = HOCH2OOH -> HOCH2O. + OH
-  26 = CH3ONO2 -> CH3O + NO2
-  27 = CH3(OONO2) -> CH3(OO) + NO2
-  28 = CH3CH2ONO2 -> CH3CH2O + NO2
-  29 = C2H5ONO2 -> C2H5O + NO2                           ethyl nitrate
-  30 = n-C3H7ONO2 -> C3H7O + NO2                         n-prop nitrate
-  31 = 1-C4H9ONO2 -> 1-C4H9O + NO2                       2-but nitrate
-  32 = 2-C4H9ONO2 -> 2-C4H9O + NO2
-  33 = CH3CHONO2CH3 -> CH3CHOCH3 + NO2
-  34 = CH2(OH)CH2(ONO2) -> CH2(OH)CH2(O.) + NO2
-  35 = CH3COCH2(ONO2) -> CH3COCH2(O.) + NO2
-  36 = C(CH3)3(ONO2) -> C(CH3)3(O.) + NO2
-  37 = C(CH3)3(ONO) -> C(CH3)3(O) + NO
-  38 = CH3CO(OONO2) -> CH3CO(OO) + NO2
-  39 = CH3CO(OONO2) -> CH3CO(O) + NO3
-  40 = CH3CH2CO(OONO2) -> CH3CH2CO(OO) + NO2
-  41 = CH3CH2CO(OONO2) -> CH3CH2CO(O) + NO3               ppn
-  42 = CH2=CHCHO -> Products
-  43 = CH2=C(CH3)CHO -> Products
-  44 = CH3COCH=CH2 -> Products
-  45 = HOCH2CHO -> CH2OH + HCO
-  46 = HOCH2CHO -> CH3OH + CO
-  47 = HOCH2CHO -> CH2CHO + OH
-  48 = CH3COCH3 -> CH3CO + CH3
-  49 = CH3COCH2CH3 -> CH3CO + CH2CH3
-  50 = CH2(OH)COCH3 -> CH3CO + CH2(OH)
-  51 = CH2(OH)COCH3 -> CH2(OH)CO + CH3
-  52 = CHOCHO -> HCO + HCO
-  53 = CHOCHO -> H2 + 2CO
-  54 = CHOCHO -> CH2O + CO
-  55 = CH3COCHO -> CH3CO + HCO
-  56 = CH3COCOCH3 -> Products
-  57 = CH3COOH -> CH3 + COOH
-  58 = CH3CO(OOH) -> Products
-  59 = CH3COCO(OH) -> Products
-  60 = (CH3)2NNO -> Products  """
-
-#####################################################
-
 # Rates-related things
 temperature_variable = 'TEMP'
 ndens_air_variable = 'C_M'
 time_variable = 'HOUR'
 rate_expr_include_dir = os.path.join(_mydir, 'Rates')
 c_math_fxns = ['exp', 'sqrt', 'log', 'log10', 'cos', 'abs']
-
-inline_incl = False
-inlines = ['cdef inline int int_min(int a, int b): return a if a <= b else b']
 
 class ChemError(Exception):
     pass
@@ -886,7 +758,10 @@ def _parse_kpp_species(spec_file):
                     else:
                            raise NotImplementedError('KPP action {} yet to be implmented'.format(spec_action.strip()))
             else:
-                raise NotImplementedError('KPP Definition {} yet to be implmented'.format(line))
+                if line.strip() == '#EQUATIONS':
+                    raise SpeciesDefError('Species and Equation Files in incorrect order')
+                else:
+                    raise NotImplementedError('KPP Definition {} yet to be implmented'.format(line))
 
 def _parse_kpp_reactions(rxn_file):
     """parse_pecan_reactions documentation:
@@ -953,6 +828,8 @@ def _parse_kpp_reactions(rxn_file):
                 rate_str = re.sub('EXP','exp',rate_str)
 
                 def self_evaluating(expr):
+                    # For use recognizing if an expressions is in terms of known constants as mathematical
+                    # expressions and therefore can be treated as if it were a simple number
                     C_M, TEMP = 2.5e19, 300
                     try:
                         float(eval(expr))
@@ -961,14 +838,13 @@ def _parse_kpp_reactions(rxn_file):
                         return False
 
                 def nested_rates(rate_str):
-                    # If it's a coefficient it can bet left alone
-                    # if it is self evaluating
+                    # Deal with Nested Rates [often just a rate function with a coefficent]
                     if not self_evaluating:
                         rate_str = rate_str[1:-1]
                         for rate_fraction in rate_str.split('*'):
                             if rate_str.startswith('('):
                                 nested_rates(rate_fraction)
-                            elif not self_evaluating(rate_fraction) and not rate_str.startswith('j'):
+                            elif not self_evaluating(rate_fraction):
                                 try:
                                     RateExpression.mark_rate_as_needed(rate_fraction)
                                 except RateDefError as err:
@@ -976,9 +852,9 @@ def _parse_kpp_reactions(rxn_file):
                                                            .format(lineno, rxn_file, err.args[0])) from None
 
                 if rate_str.startswith('j') or ('*' in rate_str and (rate_str.split('*')[1]).startswith('j')):
-                    rate_str = define_photolysis(rate_str)
+                    pass # See Personalized_Rates Branch for highly user-specific and unideal treatment
 
-                if rate_str.startswith('('):
+                elif rate_str.startswith('('):
                     nested_rates(rate_str)
 
                 else:
@@ -996,44 +872,6 @@ def _parse_kpp_reactions(rxn_file):
                 raise NotImplementedError('Unexpected Argument'.format(line))
 
     return reactions
-
-def define_photolysis(rate_str):
-
-    if '*' in rate_str:
-        j_rate = rate_str.split('*')[1]
-        coef = rate_str.split('*')[0]
-    else:
-        j_rate = rate_str
-        coef = None
-
-    j_arg = str(re.sub('\Aj','',j_rate))
-    j_arg = str(re.sub('[\(\)]','',j_arg)).strip()
-
-    j_func = J_defins[j_arg][0]
-    n_rxn = J_defins[j_arg][1]
-    coef2 = J_defins[j_arg][2]
-
-    if not any([j_arg == key for key in list(J_defins.keys())]):
-        raise RateDefError('Unrecognized Photolysis expression arguments {}'.format(j_arg))
-
-    if j_func == 'MCM_J':
-        args = ','.join([str(element) for element in MCM_J_Parameters[n_rxn]])
-        func = 'MCM_J'
-        if coef2 == 1:
-            j_expression = '{}({},{})'.format(j_func, args, time_variable)
-        else:
-            j_expression = '{} * {}({},{})'.format(coef2, j_func, args, time_variable)
-    elif j_func == 'TUV_J':
-        if coef2 == 1:
-            j_expression = '{}({},{})'.format(j_func, n_rxn, time_variable)
-        else:
-            j_expression = '{} * ({},{})'.format(coef2, j_func, n_rxn, time_variable)
-
-
-    if coef:
-        return '{}*{}'.format(coef, j_expression)
-    else:
-        return j_expression
 
 def _iter_react_prod(line):
     """
@@ -1155,9 +993,6 @@ def generate_chemderiv_file(reactions):
 
     with open(derivative_file, 'w') as f:
         f.write('from libc.math cimport {}\n\n'.format(', '.join(c_math_fxns)))
-        if inline_incl:
-            f.write('\n'.join([inline for inline in inlines]))
-            f.write('\n\n')
         f.write('\n'.join(_generate_interface_function(derivs)))
         f.write('\n\n')
         for d in derivs:
