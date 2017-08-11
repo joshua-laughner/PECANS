@@ -1,0 +1,5 @@
+*.txt
+chemderiv.c
+chemderiv.cpython-36m-darwin.so
+chemderiv.pyx
+initial.py
