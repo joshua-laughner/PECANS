@@ -23,10 +23,10 @@ def pretty_print_matrix(A, name='A'):
     print(preface_space + top_bottom_line)
 
 
-def _pretty_format_row(row, column_width=12):
+def _pretty_format_row(row, column_width=15):
     s = '| '
     for val in row.squeeze():
-        val_str = '{:.3g}'.format(val)
+        val_str = '{:.6g}'.format(val)
         space_str = ' '*(column_width - len(val_str))
         s += val_str + space_str
     s += ' |'

@@ -165,6 +165,18 @@ class TestMatrixConstruction(unittest.TestCase):
 
         self.assertTrue(test_result, msg='The transport matrix for the 2D case differs from expected by greater than the tolerance')
 
+        A_stencil = be.construct_transport_matrix_with_stencil(**self.model_2d_settings)
+
+        test_result = np.allclose(A_stencil, A_check)
+        if self.verbose:
+            print('test_2d_zero_bc_matrix from stencil:')
+            io_utils.pretty_print_matrix(A_stencil, name='A_stencil')
+            io_utils.pretty_print_matrix(A_check, name='A_check  ')
+            if not test_result:
+                io_utils.pretty_print_matrix(A_stencil - A_check, name='A_st-A_ch')
+
+        self.assertTrue(test_result, msg='The transport matrix contructed with stencils for the 2D case differs from expected by greater than the tolerance')
+
 
 if __name__ == '__main__':
     unittest.main()
