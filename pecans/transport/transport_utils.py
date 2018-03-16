@@ -567,6 +567,13 @@ def _get_relative_linear_index(curr_lin_idx, dims, di=0, dj=0, dk=0):
     return np.ravel_multi_index(curr_idx + dijk, dims=dims, order='F')
 
 
+def domain_to_vector(domain):
+    return domain.ravel(order='F')
+
+
+def vector_to_domain(vector, domain_size):
+    return vector.reshape(domain_size, order='F')
+
 # Define common stencils for various ways of discretizing derivatives
 # C.f. http://mathfaculty.fullerton.edu/mathews/n2003/differentiation/NumericalDiffProof.pdf
 # tables 6.3 and 6.4

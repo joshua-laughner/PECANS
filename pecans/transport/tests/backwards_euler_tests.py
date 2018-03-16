@@ -1,11 +1,16 @@
+from matplotlib import pyplot as plt
 import numpy as np
+import os
 import sys
 import unittest
 
-from .. import backwards_euler as be
+from . import test_cases
+from .. import backwards_euler as be, transport_driver as driver
 from ...utilities import io_utils
 
-import pdb
+_my_dir = os.path.realpath(os.path.abspath(os.path.dirname(__file__)))
+_output_dir = os.path.join(_my_dir, 'test_output')
+
 
 def construct_2d_5x5_matrix(C_rx, C_ry, r_x, r_y, n=5):
     """
@@ -177,6 +182,65 @@ class TestMatrixConstruction(unittest.TestCase):
 
         self.assertTrue(test_result, msg='The transport matrix contructed with stencils for the 2D case differs from expected by greater than the tolerance')
 
+
+class TestTransport(unittest.TestCase):
+    def calculate_number_time_steps(self, dt, run_time):
+        return int(run_time / dt)
+
+    def plot_domain(self, domain, savename):
+        if domain.ndim == 1:
+            domain = domain.reshape((domain.size, 1))
+        elif domain.ndim != 2:
+            raise NotImplementedError('Plotting of 3D domains not implemented')
+
+        # Temporary kludge
+        print('{}: max at {}'.format(savename, np.unravel_index(np.argmax(domain), domain.shape)))
+
+        fig = plt.figure()
+        ax = fig.add_axes(plt.axes())
+        mesh = ax.pcolormesh(domain)
+        fig.colorbar(mesh)
+        # pcolormesh seems to flip the dimensions
+        plt.xlabel('Y')
+        plt.ylabel('X')
+        fig.savefig(os.path.join(_output_dir, savename))
+
+    def test_1d_transport(self):
+        domain, settings = test_cases.point_1d()
+        self.plot_domain(domain, '1d_init.png')
+        # Run for one hour
+        nsteps = self.calculate_number_time_steps(settings['dt'], 3600)
+        for n in range(nsteps):
+            domain = driver.solve(domain, be.construct_transport_matrix_with_stencil, **settings)
+        self.plot_domain(domain, '1d_final.png')
+
+    def test_1d_gaussian_transport(self):
+        domain, settings = test_cases.gaussian_1d()
+        self.plot_domain(domain, '1d_gaussian_init.png')
+        nsteps = self.calculate_number_time_steps(settings['dt'], 3600)
+        for n in range(nsteps):
+            domain = driver.solve(domain, be.construct_transport_matrix_with_stencil, **settings)
+        self.plot_domain(domain, '1d_gaussian_final.png')
+
+    def test_2d_transport(self):
+        domain, settings = test_cases.point_2d()
+        self.plot_domain(domain, '2d_init.png')
+        nsteps = self.calculate_number_time_steps(settings['dt'], 3600)
+        for n in range(nsteps):
+            if n % 5 == 0:
+                print('2D point: step {} of {}'.format(n, nsteps))
+            domain = driver.solve(domain, be.construct_transport_matrix_with_stencil, **settings)
+        self.plot_domain(domain, '2d_final.png')
+
+    def test_2d_gaussian_transport(self):
+        domain, settings = test_cases.gaussian_2d()
+        self.plot_domain(domain, '2d_gaussian_init.png')
+        nsteps = self.calculate_number_time_steps(settings['dt'], 3600)
+        for n in range(nsteps):
+            if n % 5 == 0:
+                print('2D gaussian: step {} of {}'.format(n, nsteps))
+            domain = driver.solve(domain, be.construct_transport_matrix_with_stencil, **settings)
+        self.plot_domain(domain, '2d_gaussian_final.png')
 
 if __name__ == '__main__':
     unittest.main()

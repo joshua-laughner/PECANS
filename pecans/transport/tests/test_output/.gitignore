@@ -1,0 +1,4 @@
+# Need this directory to exist, but should not track anything in it
+# Use the trick from https://stackoverflow.com/questions/115983/how-can-i-add-an-empty-directory-to-a-git-repository#932982
+*
+!.gitignore
