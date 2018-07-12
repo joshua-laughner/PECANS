@@ -1,7 +1,7 @@
 import numpy as np
 import pdb
 
-from . import transport_utils as tutils, backwards_euler
+from . import transport_utils as tutils, backwards_euler, crank_nicholson
 from ..utilities.config import get_domain_size_from_config
 
 
@@ -31,6 +31,8 @@ def get_solver(config):
     method = config.get('TRANSPORT', 'scheme')
     if method == 'backwards_euler_2' or method == 'implicit2':
         return backwards_euler.construct_transport_matrix_with_stencil
+    elif method == 'crank-nicholson':
+        return crank_nicholson.construct_transport_matrix_with_stencil
     else:
         raise ValueError('No solver defined for method == "{}"'.format(method))
 

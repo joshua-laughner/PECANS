@@ -31,7 +31,6 @@ def _setup_gaussian_emissions(config):
     # emissions will be close to the total specified. (It'll probably be a little off b/c of discretization, this could
     # be improved on later.) Then we divide by area because emissions are usually given in molec./area/second. We assume
     # that the total is molec./second
-    dx = config.get('DOMAIN', 'dx')
     dy = config.get('DOMAIN', 'dy')
 
     x, y, z = domain_utilities.compute_coordinates_from_config(config)
@@ -40,7 +39,17 @@ def _setup_gaussian_emissions(config):
         raise NotImplementedError('Gaussian emissions not set up for 2 or 3D models')
 
     emis_opts = config.get('EMISSIONS', 'emission_opts')
-    emissions_vector = emis_opts['total'] / (dx * dy) * general_utils.gaussian(emis_opts['center'], emis_opts['width'], x=x, normalized=True)
+    # Okay, this took far too long to figure out. Originally, I had E_tot / (dx*dy) * G_x
+    # but that always gave emissions off by a factor of dx. Why? The gaussian itself has
+    # units of m^{-1}, because it's normalized; essentially it's giving the probability 
+    # per unit length.
+    #
+    # What we want is \sum_x E_x dx dy = E_tot. That means E_x should have units of mol s^-1 m^-2,
+    # if E_tot has units of mol s^-1. That would seem to suggest that E_x = E_tot / (dx*dy) * G_x,
+    # except that G_x has units of m^-1, and it needs multiplied by dx to get from "fraction of
+    # emissions per unit length" to "fraction of emissions in a box of length dx". Which means a
+    # the dx cancels out, and we only really need to divide by dy to get E_x into mol m^-2 s^-1.
+    emissions_vector = emis_opts['total'] / dy * general_utils.gaussian(emis_opts['center'], emis_opts['width'], x=x, normalized=True)
 
     def return_gaussian_vector(specie, seconds_since_model_start):
         return emissions_vector
