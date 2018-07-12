@@ -5,7 +5,7 @@ import sys
 import unittest
 
 from . import test_cases
-from .. import backwards_euler as be, transport_driver as driver
+from .. import backwards_euler as be, transport_setup as driver
 from ...utilities import io_utils
 
 _my_dir = os.path.realpath(os.path.abspath(os.path.dirname(__file__)))

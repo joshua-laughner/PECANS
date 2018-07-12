@@ -127,6 +127,8 @@ def construct_transport_matrix_with_stencil(dt, dx=None, dy=None, dz=None, u_x=N
     dt, dx, dy, dz, u_x, u_y, u_z, D_x, D_y, D_z, domain_size, boundary_conditions, n_model_dims = \
         tutils.check_transport_inputs(dt, dx, dy, dz, u_x, u_y, u_z, D_x, D_y, D_z, domain_size, boundary_conditions)
 
+    # TODO: this breaks if given an array for the u's or D's. It's going to have to create an array of stencils or
+    # something to handle that case. Or separate out the prefactor more carefully in the stencil implementation
 
     # Construct the combined quantities used in the matrix
     r_x = D_x * dt / (dx**2)

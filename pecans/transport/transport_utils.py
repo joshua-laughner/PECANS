@@ -88,7 +88,7 @@ class StencilPoint:
         if isinstance(value, int):
             value = float(value)
         elif not isinstance(value, float):
-            raise TypeError('coefficient must be a scalar int or float')
+            raise TypeError('coefficient must be a scalar int or float, not {}'.format(value))
 
         self._coefficient = value
 
@@ -233,6 +233,8 @@ class Stencil:
         return new_stencil
 
     def duplicate(self, new_time=None, new_dim=None, new_prefactor=1.0, keep_constant=False):
+        if not isinstance(new_prefactor, float):
+            raise TypeError('new_prefactor must be an float value')
 
         point_args = [[pt.indices, pt.coefficient] for pt in self._points]
         point_args = itertools.chain.from_iterable(point_args)
@@ -382,7 +384,6 @@ def check_transport_inputs(dt, dx, dy, dz, u_x, u_y, u_z, D_x, D_y, D_z, domain_
     :param D_z:
     :return: all parameters, converted to proper types as necessary (i.e. scalar numbers are forced to floats)
     """
-
     must_be_scalar_msg = '{} must be a scalar int or float'
 
     if isinstance(dt, (int, float)):
@@ -428,7 +429,7 @@ def check_transport_inputs(dt, dx, dy, dz, u_x, u_y, u_z, D_x, D_y, D_z, domain_
         D_z = float(D_z) if D_z is not None else None
 
     elif isinstance(u_x, np.ndarray):
-        is_scalar = True
+        is_scalar = False
         check_types = [isinstance(el, np.ndarray) or el is None for el in u_and_D]
         if not all(check_types):
             raise TypeError('If u_x is a numpy array, then u_y, u_z, D_x, D_y, and D_z must all be numpy arrays or None')
@@ -438,7 +439,7 @@ def check_transport_inputs(dt, dx, dy, dz, u_x, u_y, u_z, D_x, D_y, D_z, domain_
             raise ValueError('If u_x is a numpy array, then all u and D values must have the same shape or be None')
 
         # Set domain_size equal to the shape of the arrays so that the calling function can use that.
-        domain_size = check_sizes[0]
+        domain_size = u_x.shape
 
         # Ensure all are 64 bit floats
         u_x = u_x.astype(np.float64)

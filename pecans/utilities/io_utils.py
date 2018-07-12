@@ -1,5 +1,7 @@
 import numpy as np
 
+data_type = 'f8'
+
 
 def pretty_print_matrix(A, name='A'):
     if not isinstance(A, np.ndarray) or A.ndim > 2:

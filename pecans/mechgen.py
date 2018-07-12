@@ -4,6 +4,9 @@
 Generate mechanism solver file from a KPP-like mechanism file or one following PECANS style
 """
 
+#TODO: change so that the dict returned from chem solver is just the changes, not the new concentrations
+#      (this should work better with op splitting)
+
 import argparse
 from glob import glob
 import os.path
