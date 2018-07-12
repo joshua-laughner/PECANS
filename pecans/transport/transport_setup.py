@@ -19,7 +19,7 @@ def setup_transport(config):
         # here as a **kwargs. The solver or a driver function could then loop over the species to transport.
         transport_matrix = transport_method(dt=dt, dx=dx, dy=dy, dz=dz, u_x=u_x, u_y=u_y, u_z=u_z, D_x=D_x, D_y=D_y, D_z=D_z,
                               domain_size=domain_size, boundary_conditions=boundary_conditions)
-        pdb.set_trace()
+        #pdb.set_trace()
         current_concentrations = tutils.domain_to_vector(values)
         next_concentrations = np.linalg.solve(transport_matrix, current_concentrations)
         return tutils.vector_to_domain(next_concentrations, domain_size)

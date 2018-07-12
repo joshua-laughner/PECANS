@@ -82,6 +82,7 @@ class Domain(object):
         seconds -= minutes * 60
 
         output_file_name = 'pecans_output_{:03}d{:02}h{:02}m{:02}s.nc'.format(days, hours, minutes, seconds)
+        print('Writing {}'.format(output_file_name))
         with ncdf.Dataset(output_file_name, mode='w', clobber=True, format='NETCDF4') as ncdat:
             x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(config=self._config)
 

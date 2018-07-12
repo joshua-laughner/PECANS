@@ -3,6 +3,7 @@ import numpy as np
 
 import pdb
 
+
 class InDomainError(Exception):
     pass
 

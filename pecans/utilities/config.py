@@ -1,5 +1,6 @@
 from ast import literal_eval
 import configparser
+import os
 
 import pdb
 
@@ -25,6 +26,8 @@ class BetterConfig(configparser.RawConfigParser):
 
 
 def load_config_file(config_file):
+    if not os.path.isfile(config_file):
+        raise IOError('Specified configuration file "{}" does not exist'.format(config_file))
     config = BetterConfig()
     config.valuexform = _parse_line_value
     config.read(config_file)

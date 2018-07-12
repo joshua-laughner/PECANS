@@ -1,5 +1,7 @@
+import numpy as np
+
 from ..utilities import general_utils, domain_utilities
-from ..utilities.config import ConfigurationError
+from ..utilities.config import ConfigurationError, get_domain_size_from_config
 
 import pdb
 
@@ -10,6 +12,8 @@ def setup_emissions(config):
     emis_type = config.get('EMISSIONS', 'emission_type')
     if emis_type == 'gaussian':
         get_emis_fxn = _setup_gaussian_emissions(config)
+    elif emis_type == 'point':
+        get_emis_fxn = _setup_point_emissions(config)
     else:
         raise NotImplementedError('No emissions set up for "{}" emissions type'.format(emis_type))
 
@@ -42,6 +46,26 @@ def _setup_gaussian_emissions(config):
         return emissions_vector
 
     return return_gaussian_vector
+
+
+def _setup_point_emissions(config):
+    dx = config.get('DOMAIN', 'dx')
+    dy = config.get('DOMAIN', 'dy')
+
+    x, y, z = domain_utilities.compute_coordinates_from_config(config)
+
+    if y is not None or z is not None:
+        raise NotImplementedError('Gaussian emissions not set up for 2 or 3D models')
+    emis_opts = config.get('EMISSIONS', 'emission_opts')
+
+    idx = np.argmin(np.abs(x - emis_opts['center']))
+    emis = np.zeros(get_domain_size_from_config(config))
+    emis[idx] = emis_opts['total']
+
+    def return_emis_vector(specie, seconds_since_model_start):
+        return emis
+
+    return return_emis_vector
 
 
 def _check_grid_box_size(config, dim):
