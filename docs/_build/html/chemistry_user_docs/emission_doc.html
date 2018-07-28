@@ -1,0 +1,149 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Emissions options &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Initial conditions" href="initial_cond_doc.html" />
+    <link rel="prev" title="PECANS Configuration Manual" href="../config_user_guide.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="emissions-options">
+<span id="emission-doc"></span><h1>Emissions options<a class="headerlink" href="#emissions-options" title="Permalink to this headline">¶</a></h1>
+<ul>
+<li><p class="first"><strong>gaussian</strong> - Emissions are distributed in a 1D, 2D, or 3D Gaussian. Its shape are center are determined by the
+values given in <code class="docutils literal notranslate"><span class="pre">emission_opts</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>center_x</em>, <em>center_y</em>, <em>center_z</em> - the center coordinates (in meters) of the Gaussian. If 1D, <em>center_y</em> and
+<em>center_z</em> may be omitted; if 2D, <em>center_z</em> may be omitted.</li>
+<li><em>width_x</em>, <em>width_y</em>, <em>width_z</em> - the width (<span class="math notranslate nohighlight">\(\sigma\)</span>) of the Gaussian in each dimension. The <em>y</em> and <em>z</em>
+widths may be omitted according to the same rules as the centers.</li>
+<li><em>total</em> - the total emissions, in molecules per second. Note that this is different from the Gaussian used for
+initial conditions, because this sets the total area under the Gaussian, not its maximum value.</li>
+</ul>
+</div></blockquote>
+<p>In 1D, the emissions at each point would be given by:</p>
+<div class="math notranslate nohighlight">
+\[E(x) = \frac{E_{\mathrm{tot}} \Delta x}{\Delta x \Delta y \sqrt{2\pi\sigma_x^2}} \exp\left( -\frac{x - \mu_x}{2\sigma^2}\right)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta x\)</span> and <span class="math notranslate nohighlight">\(\Delta y\)</span> are the box <code class="docutils literal notranslate"><span class="pre">dx</span></code> and <code class="docutils literal notranslate"><span class="pre">dy</span></code> values, <span class="math notranslate nohighlight">\(E_{\mathrm{tot}}\)</span> is the total
+emissions specified by the <em>total</em> emissions option, <span class="math notranslate nohighlight">\(\mu_x\)</span> is the <em>center_x</em> and <span class="math notranslate nohighlight">\(\sigma_x\)</span> the <em>width_x</em>.
+The total emissions are divided by <span class="math notranslate nohighlight">\(\Delta x \Delta y\)</span> to normalize per unit area, but must be multiplied by
+<span class="math notranslate nohighlight">\(\Delta x\)</span> to account for the discretization of the Gaussian onto the model grid (i.e. the normalized Gaussian is
+the emissions fraction per unit length, so it must be multiplied by the width of the box).</p>
+</li>
+<li><p class="first"><strong>point</strong> - Emissions are all placed in a single grid cell. Its quantity and location are determined by the values
+given in <code class="docutils literal notranslate"><span class="pre">emission_opts</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>center_x</em>, <em>center_y</em>, <em>center_z</em> - the center coordinates (in meters) where the emissions should be placed.
+Whichever grid cell this falls in received the emissions. If 1D, <em>center_y</em> and <em>center_z</em> may be omitted; if 2D,
+<em>center_z</em> may be omitted.</li>
+<li><em>total</em> - the total emissions, in molecules per second.</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PECANS Main Page</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Emissions options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initial_cond_doc.html">Initial conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mechanism_doc.html">Chemistry in PECANS</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../model_design.html">Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities_doc.html">PECANS Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chemistry_docs/chem_code_doc.html">Chemistry solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../config_user_guide.html" title="previous chapter">PECANS Configuration Manual</a></li>
+      <li>Next: <a href="initial_cond_doc.html" title="next chapter">Initial conditions</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/chemistry_user_docs/emission_doc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,198 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Chemistry solvers &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="PECANS Utilities" href="../utilities_doc.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="chemistry-solvers">
+<h1>Chemistry solvers<a class="headerlink" href="#chemistry-solvers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pecans.chemistry.chem_setup">
+<span id="setup-and-initialization"></span><h2>Setup and initialization<a class="headerlink" href="#module-pecans.chemistry.chem_setup" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pecans.chemistry.chem_setup.get_initial_conditions">
+<code class="descclassname">pecans.chemistry.chem_setup.</code><code class="descname">get_initial_conditions</code><span class="sig-paren">(</span><em>config</em>, <em>specie</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pecans/chemistry/chem_setup.html#get_initial_conditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pecans.chemistry.chem_setup.get_initial_conditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the initial conditions for a given chemical specie based on how the configuration specifies it</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>config</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">BetterConfig</span></code>) – the configuration object</li>
+<li><strong>specie</strong> (<em>str</em>) – the name of the chemical specie to load</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the array of initial concentrations</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pecans.chemistry.chem_setup.setup_chemistry">
+<code class="descclassname">pecans.chemistry.chem_setup.</code><code class="descname">setup_chemistry</code><span class="sig-paren">(</span><em>config</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pecans/chemistry/chem_setup.html#setup_chemistry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pecans.chemistry.chem_setup.setup_chemistry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the driver function that, when called, will calculate the change in concentrations due to chemistry.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">BetterConfig</span></code>) – the configuration object. Must include the option “mechanism” in the “CHEMISTRY” section</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">1) the driver function. All driver functions must be called with dt, temperature, and number density of air
+followed by keyword-value pairs of all the chemical species in the mechanism.
+2) the tuple of species names required by the mechanism.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">function, tuple of str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pecans.chemistry.ideal">
+<span id="ideal-chemical-mechanisms"></span><span id="ideal-chem-mech-code"></span><h2>Ideal chemical mechanisms<a class="headerlink" href="#module-pecans.chemistry.ideal" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ideal</span></code> module contains the functions necessary to initialize and solve idealized chemistry cases. These are very
+simplified chemical models that, rather that explicitly simulating a full chemical mechanism, instead impose some ideal
+kinetic model on just a few species. For example, one is a simple first-order loss, where it is just specified that the
+only chemical specie in the model has some lifetime.</p>
+<dl class="function">
+<dt id="pecans.chemistry.ideal.init_explicit_first_order_chem_solver">
+<code class="descclassname">pecans.chemistry.ideal.</code><code class="descname">init_explicit_first_order_chem_solver</code><span class="sig-paren">(</span><em>lifetime_seconds</em>, <em>species_name='A'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pecans/chemistry/ideal.html#init_explicit_first_order_chem_solver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pecans.chemistry.ideal.init_explicit_first_order_chem_solver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialization function for the idealized first-order chemistry solver.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lifetime_seconds</strong> (<em>int</em><em> or </em><em>float</em>) – the first-order lifetime in seconds, i.e. how long it would take the concentration to
+decrease to <span class="math notranslate nohighlight">\(1/e\)</span> of its original value.</li>
+<li><strong>species_name</strong> – optional, the name that the specie in this mechanism will be referred to by. Default is “A”.
+Changing this has no real effect on the mechanism, just what it is called in the output.</li>
+<li><strong>kwargs</strong> – extra keyword arguments not used in this function.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the solver function and a tuple of species names.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">function and tuple of str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PECANS Main Page</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chemistry_user_docs/emission_doc.html">Emissions options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chemistry_user_docs/initial_cond_doc.html">Initial conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chemistry_user_docs/mechanism_doc.html">Chemistry in PECANS</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model_design.html">Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities_doc.html">PECANS Utilities</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Chemistry solvers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-pecans.chemistry.chem_setup">Setup and initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pecans.chemistry.ideal">Ideal chemical mechanisms</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../utilities_doc.html" title="previous chapter">PECANS Utilities</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/chemistry_docs/chem_code_doc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

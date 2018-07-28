@@ -1,0 +1,262 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pecans.emissions.emissions_setup &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pecans.emissions.emissions_setup</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pecans.utilities</span> <span class="k">import</span> <span class="n">general_utils</span><span class="p">,</span> <span class="n">domain_utilities</span>
+<span class="kn">from</span> <span class="nn">pecans.utilities.config</span> <span class="k">import</span> <span class="n">ConfigurationError</span><span class="p">,</span> <span class="n">get_domain_size_from_config</span>
+
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+
+<div class="viewcode-block" id="setup_emissions"><a class="viewcode-back" href="../../../chemistry_docs/emis_code_doc.html#pecans.emissions.emissions_setup.setup_emissions">[docs]</a><span class="k">def</span> <span class="nf">setup_emissions</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Primary emissions setup method that sets up the proper emissions solver based on the configuration file</span>
+
+<span class="sd">    :param config: the configuration object</span>
+<span class="sd">    :type config: :class:`~pecans.utilities.BetterConfig`</span>
+
+<span class="sd">    :return: the emissions solver function. Any solver function takes as input: the config object, seconds since model</span>
+<span class="sd">        start, and the dictionary of chemical species as keyword-value pairs. Any solver function returns the updated</span>
+<span class="sd">        dictionary of chemical species and the current dictionary of emissions.</span>
+<span class="sd">    :rtype: dict and dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_check_grid_box_size</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;dy&#39;</span><span class="p">)</span>
+    <span class="n">_check_grid_box_size</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s1">&#39;dz&#39;</span><span class="p">)</span>
+
+    <span class="n">emis_type</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;emission_type&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">emis_type</span> <span class="o">==</span> <span class="s1">&#39;gaussian&#39;</span><span class="p">:</span>
+        <span class="n">get_emis_fxn</span> <span class="o">=</span> <span class="n">_setup_gaussian_emissions</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">emis_type</span> <span class="o">==</span> <span class="s1">&#39;point&#39;</span><span class="p">:</span>
+        <span class="n">get_emis_fxn</span> <span class="o">=</span> <span class="n">_setup_point_emissions</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;No emissions set up for &quot;</span><span class="si">{}</span><span class="s1">&quot; emissions type&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">emis_type</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">emissions_solver</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">seconds_since_model_start</span><span class="p">,</span> <span class="o">**</span><span class="n">species</span><span class="p">):</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;dz&#39;</span><span class="p">)</span>
+        <span class="n">emis_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">specie</span><span class="p">,</span> <span class="n">concentration</span> <span class="ow">in</span> <span class="n">species</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">emis</span> <span class="o">=</span> <span class="n">get_emis_fxn</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">seconds_since_model_start</span><span class="p">)</span>
+            <span class="n">species</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="o">=</span> <span class="n">concentration</span> <span class="o">+</span> <span class="n">emis</span> <span class="o">/</span> <span class="n">dz</span>
+            <span class="n">emis_dict</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="o">=</span> <span class="n">emis</span>
+
+        <span class="k">return</span> <span class="n">species</span><span class="p">,</span> <span class="n">emis_dict</span>
+
+    <span class="k">return</span> <span class="n">emissions_solver</span></div>
+
+
+<span class="k">def</span> <span class="nf">_setup_gaussian_emissions</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function that sets up a Gaussian shaped emission source based on the configuration file.</span>
+
+<span class="sd">    Requires that emission_opts in the config file contains:</span>
+
+<span class="sd">        * center_x, width_x, total</span>
+<span class="sd">        * center_y, width_y if &gt; 1D</span>
+<span class="sd">        * center_z, width_z if &gt; 2D</span>
+
+<span class="sd">    :param config: the configuration object</span>
+<span class="sd">    :type config: :class:`~pecans.utilities.BetterConfig`</span>
+
+<span class="sd">    :return: a function that, when called, returns an array of emissions in molecules cm^-2 s^-1. It accepts two inputs</span>
+<span class="sd">        (species name and seconds since model start) but doesn&#39;t use either - just accepted for consistency with other</span>
+<span class="sd">        expected &quot;get emissions&quot; functions</span>
+<span class="sd">    :rtype: function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># So for a Gaussian we multiply the total emissions by a normalized Gaussian so that in theory the integrated</span>
+    <span class="c1"># emissions will be close to the total specified. (It&#39;ll probably be a little off b/c of discretization, this could</span>
+    <span class="c1"># be improved on later.) Then we divide by area because emissions are usually given in molec./area/second. We assume</span>
+    <span class="c1"># that the total is molec./second</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;dy&#39;</span><span class="p">)</span>
+
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">domain_utilities</span><span class="o">.</span><span class="n">compute_coordinates_from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Gaussian emissions not set up for 2 or 3D models&#39;</span><span class="p">)</span>
+
+    <span class="n">emis_opts</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;emission_opts&#39;</span><span class="p">)</span>
+    <span class="c1"># Okay, this took far too long to figure out. Originally, I had E_tot / (dx*dy) * G_x</span>
+    <span class="c1"># but that always gave emissions off by a factor of dx. Why? The gaussian itself has</span>
+    <span class="c1"># units of m^{-1}, because it&#39;s normalized; essentially it&#39;s giving the probability </span>
+    <span class="c1"># per unit length.</span>
+    <span class="c1">#</span>
+    <span class="c1"># What we want is \sum_x E_x dx dy = E_tot. That means E_x should have units of mol s^-1 m^-2,</span>
+    <span class="c1"># if E_tot has units of mol s^-1. That would seem to suggest that E_x = E_tot / (dx*dy) * G_x,</span>
+    <span class="c1"># except that G_x has units of m^-1, and it needs multiplied by dx to get from &quot;fraction of</span>
+    <span class="c1"># emissions per unit length&quot; to &quot;fraction of emissions in a box of length dx&quot;. Which means a</span>
+    <span class="c1"># the dx cancels out, and we only really need to divide by dy to get E_x into mol m^-2 s^-1.</span>
+    <span class="n">emissions_vector</span> <span class="o">=</span> <span class="n">emis_opts</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">general_utils</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">emis_opts</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">],</span> <span class="n">emis_opts</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">normalized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">return_gaussian_vector</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">seconds_since_model_start</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">emissions_vector</span>
+
+    <span class="k">return</span> <span class="n">return_gaussian_vector</span>
+
+
+<span class="k">def</span> <span class="nf">_setup_point_emissions</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function that sets up a point emission source based on the configuration file.</span>
+
+<span class="sd">    Requires that emission_opts in the config file contains center_x, center_y if &gt; 1D, center_z if &gt; 2D, and total.</span>
+
+<span class="sd">    :param config: the configuration object</span>
+<span class="sd">    :type config: :class:`~pecans.utilities.BetterConfig`</span>
+
+<span class="sd">    :return: a function that, when called, returns an array of emissions in molecules cm^-2 s^-1. It accepts two inputs</span>
+<span class="sd">        (species name and seconds since model start) but doesn&#39;t use either - just accepted for consistency with other</span>
+<span class="sd">        expected &quot;get emissions&quot; functions</span>
+<span class="sd">    :rtype: function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;dx&#39;</span><span class="p">)</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;dy&#39;</span><span class="p">)</span>
+
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">domain_utilities</span><span class="o">.</span><span class="n">compute_coordinates_from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Point emissions not set up for 2 or 3D models&#39;</span><span class="p">)</span>
+    <span class="n">emis_opts</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;emission_opts&#39;</span><span class="p">)</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">emis_opts</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]))</span>
+    <span class="n">emis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">get_domain_size_from_config</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+    <span class="n">emis</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">emis_opts</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">return_emis_vector</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">seconds_since_model_start</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">emis</span>
+
+    <span class="k">return</span> <span class="n">return_emis_vector</span>
+
+
+<span class="k">def</span> <span class="nf">_check_grid_box_size</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function that checks that the boxes are a reasonable size.</span>
+
+<span class="sd">    Typically, we want to check that no box length in any dimension is 0 or much smaller than the others. In some cases</span>
+<span class="sd">    it may not matter, but just as a safety precaution, this function helps check that.</span>
+
+<span class="sd">    :param config: the configuration object</span>
+<span class="sd">    :type config: :class:`~pecans.utilities.BetterConfig`</span>
+
+<span class="sd">    :param dim: which dimension (y or z) to check.</span>
+<span class="sd">    :type dim: str</span>
+
+<span class="sd">    :return: none, raises :class:`~pecans.utilities.config.ConfigurationError` if an invalid configuration is active.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;dx&#39;</span><span class="p">)</span>
+    <span class="n">d2</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+
+    <span class="c1"># Quick check that the user didn&#39;t make dy some very small value in a 1D model.</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{dim}</span><span class="s1"> is </span><span class="si">{value}</span><span class="s1">. Emissions are calculated using both dx and dy to compute the grid box area, even in a 1D model.&#39;</span>
+    <span class="k">if</span> <span class="n">dx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigurationError</span><span class="p">((</span><span class="n">msg</span> <span class="o">+</span> <span class="s1">&#39; Set dx to a nonzero value.&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;dx&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">d2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigurationError</span><span class="p">((</span><span class="n">msg</span> <span class="o">+</span> <span class="s1">&#39; Set </span><span class="si">{dim}</span><span class="s1"> to a nonzero value (usually == to dx is good).&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">d2</span> <span class="o">&lt;=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">dx</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;&lt; 0.1 * dx&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; If this is intended, then nothing is wrong, but usually in a 1D model, &#39;</span>
+                                              <span class="s1">&#39;setting dy approximately equal to dx is the more usual approach.&#39;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PECANS Main Page</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_user_docs/emission_doc.html">Emissions options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_user_docs/initial_cond_doc.html">Initial conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_user_docs/mechanism_doc.html">Chemistry in PECANS</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../model_design.html">Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utilities_doc.html">PECANS Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_docs/chem_code_doc.html">Chemistry solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_docs/emis_code_doc.html">Emissions schemes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

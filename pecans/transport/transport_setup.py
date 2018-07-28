@@ -31,7 +31,7 @@ def get_solver(config):
     method = config.get('TRANSPORT', 'scheme')
     if method == 'backwards_euler_2' or method == 'implicit2':
         return backwards_euler.construct_transport_matrix_with_stencil
-    elif method == 'crank-nicholson':
+    elif method == 'crank_nicholson':
         return crank_nicholson.construct_transport_matrix_with_stencil
     else:
         raise ValueError('No solver defined for method == "{}"'.format(method))

@@ -242,5 +242,6 @@ class TestTransport(unittest.TestCase):
             domain = driver.solve(domain, be.construct_transport_matrix_with_stencil, **settings)
         self.plot_domain(domain, '2d_gaussian_final.png')
 
+
 if __name__ == '__main__':
     unittest.main()

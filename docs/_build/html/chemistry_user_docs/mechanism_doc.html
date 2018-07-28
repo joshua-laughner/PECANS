@@ -1,0 +1,132 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Chemistry in PECANS &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Model Design" href="../model_design.html" />
+    <link rel="prev" title="Initial conditions" href="initial_cond_doc.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="chemistry-in-pecans">
+<h1>Chemistry in PECANS<a class="headerlink" href="#chemistry-in-pecans" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ideal-chem-mech">
+<span id="idealized-mechanisms"></span><h2>Idealized mechanisms<a class="headerlink" href="#ideal-chem-mech" title="Permalink to this headline">¶</a></h2>
+<p><strong>ideal_first_order</strong>: This mechanism simply assumes that any chemical species are lost at the same first order rate.
+That is, every species <em>A</em> follows the rate law:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial [A]}{\partial t} = -\frac{1}{\tau} [A]\]</div>
+<p><span class="math notranslate nohighlight">\(\tau\)</span> is set in the configuration file using the <code class="docutils literal notranslate"><span class="pre">mechanism_opts</span></code> option. Specifically, it must include the
+<code class="docutils literal notranslate"><span class="pre">lifetime_seconds</span></code> key, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mechanism_opts</span> <span class="o">=</span> <span class="n">lifetime_seconds</span><span class="p">:</span> <span class="mi">10800</span>
+</pre></div>
+</div>
+<p>will set a 3 hour lifetime for any and all model species.</p>
+<p>For the code used to set up these solvers, see <a class="reference internal" href="../chemistry_docs/chem_code_doc.html#ideal-chem-mech-code"><span class="std std-ref">Ideal chemical mechanisms</span></a></p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PECANS Main Page</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emission_doc.html">Emissions options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initial_cond_doc.html">Initial conditions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Chemistry in PECANS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ideal-chem-mech">Idealized mechanisms</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../model_design.html">Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities_doc.html">PECANS Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../chemistry_docs/chem_code_doc.html">Chemistry solvers</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="initial_cond_doc.html" title="previous chapter">Initial conditions</a></li>
+      <li>Next: <a href="../model_design.html" title="next chapter">Model Design</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/chemistry_user_docs/mechanism_doc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

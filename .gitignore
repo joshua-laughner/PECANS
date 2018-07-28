@@ -1,0 +1,4 @@
+.idea
+**/__pycache__
+pecans/chemderiv.pyx
+pecans_config.cfg

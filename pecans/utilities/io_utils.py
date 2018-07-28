@@ -4,6 +4,18 @@ data_type = 'f8'
 
 
 def pretty_print_matrix(A, name='A'):
+    """
+    Prints a numpy matrix to the terminal in a human-readable way (provided it isn't too large)
+
+    :param A: The matrix to print
+    :type A: :class:`numpy.ndarray`
+
+    :param name: a name to print before the matrix, default is "A", e.g. would print "A = ...", useful to distinguish
+        multiple matrices from each other.
+    :type name: str
+
+    :return: none
+    """
     if not isinstance(A, np.ndarray) or A.ndim > 2:
         raise TypeError('A must be a 1 or 2 dimensional numpy array')
 
@@ -26,6 +38,18 @@ def pretty_print_matrix(A, name='A'):
 
 
 def _pretty_format_row(row, column_width=15):
+    """
+    Helper function to :func:`pretty_print_matrix` that handles prining one row
+
+    :param row: the row to print
+    :type row: 1D :class:`numpy.ndarray`
+
+    :param column_width: how many characters to allocate per column. Default is 15.
+    :type column_width: int
+
+    :return: the formatted row
+    :rtype: str
+    """
     s = '| '
     for val in row.squeeze():
         val_str = '{:.6g}'.format(val)
