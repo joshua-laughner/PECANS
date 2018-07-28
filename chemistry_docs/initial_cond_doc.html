@@ -1,0 +1,133 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Initial conditions &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Chemistry in PECANS" href="mechanism_doc.html" />
+    <link rel="prev" title="Emissions options" href="emission_doc.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="initial-conditions">
+<span id="initial-cond-doc"></span><h1>Initial conditions<a class="headerlink" href="#initial-conditions" title="Permalink to this headline">¶</a></h1>
+<p>Here is a list of valid options for the <code class="docutils literal notranslate"><span class="pre">initial_cond</span></code> option in the configuration file:</p>
+<ul>
+<li><p class="first"><strong>gaussian</strong> - Initialize all chemical species to be a 1D, 2D, or 3D Gaussian as appropriate for the model domain.
+Requires the following options for <code class="docutils literal notranslate"><span class="pre">initial_cond_opts</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>center_x</em>, <em>center_y</em>, <em>center_z</em> - the center point of the Gaussian in the <em>x</em>, <em>y</em>, and <em>z</em> dimensions, given
+in meters. If the model is 1D, <em>center_y</em> and <em>center_z</em> may be omitted; likewise <em>center_z</em> may be omitted if
+the model is 2D.</li>
+<li><em>width_x</em>, <em>width_y</em>, <em>width_z</em> - the width of the Gaussian (its <span class="math notranslate nohighlight">\(\sigma\)</span>) in meters for the <em>x</em>, <em>y</em>, and <em>z</em>
+dimensions, respectively. Like the center coordinates, the y and z may be omitted if the model doesn’t include that
+dimension.</li>
+<li><em>max</em> - the maximum concentration, in molecules per cubic centimeter.</li>
+</ul>
+</div></blockquote>
+<p>In 1D that means that the initial concentrations of each species, <span class="math notranslate nohighlight">\(A\)</span> is given by:</p>
+<div class="math notranslate nohighlight">
+\[[A](x) = m_A \exp\left(-\frac{x - \mu_x}{2\sigma_x^2}\right)\]</div>
+<p>where <span class="math notranslate nohighlight">\(m_a\)</span> is the maximum given by the <em>max</em> option, <span class="math notranslate nohighlight">\(\mu_x\)</span> is <em>center_x</em> and <span class="math notranslate nohighlight">\(\sigma_x\)</span> is
+<em>width_x</em></p>
+</li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">PECANS Main Page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emission_doc.html">Emissions options</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Initial conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mechanism_doc.html">Chemistry in PECANS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_design.html">Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities_doc.html">PECANS Utilities</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="emission_doc.html" title="previous chapter">Emissions options</a></li>
+      <li>Next: <a href="mechanism_doc.html" title="next chapter">Chemistry in PECANS</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/chemistry_docs/initial_cond_doc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

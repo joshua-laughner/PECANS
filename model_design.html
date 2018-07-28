@@ -1,0 +1,165 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Model Design &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="PECANS Core" href="core_doc.html" />
+    <link rel="prev" title="Chemistry in PECANS" href="chemistry_docs/mechanism_doc.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="model-design">
+<h1>Model Design<a class="headerlink" href="#model-design" title="Permalink to this headline">¶</a></h1>
+<p>At its core, the PECANS model is built around the <a class="reference internal" href="core_doc.html#pecans.core.Domain" title="pecans.core.Domain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Domain</span></code></a> object, which contains the model
+concentrations within it and is linked to various solvers that handle solving the necessary differential equations for
+a single physical process. For example, right now, there are solvers for chemistry, transport and emissions. By
+<a class="reference external" href="https://en.wikipedia.org/wiki/Strang_splitting">Strang operator splitting</a>, each of these solvers can be applied in
+turn during a time step, and so in the <a class="reference internal" href="core_doc.html#pecans.core.Domain.step" title="pecans.core.Domain.step"><code class="xref py py-func docutils literal notranslate"><span class="pre">step()</span></code></a> method, each solver is applied to the array of
+concentrations separately.</p>
+<p>PECANS allows for the possibility of different solvers, for example, some methods are more accurate but take more time
+to compute, so for larger models, you may find it necessary to switch to a cheaper, less accurate method. To allow for
+this flexibility, this means that the solvers need to be set up first.</p>
+<div class="section" id="design-philosophy">
+<h2>Design philosophy<a class="headerlink" href="#design-philosophy" title="Permalink to this headline">¶</a></h2>
+<p>Anyone who wants to contribute to this project is welcome to! But please read this section and take it seriously. It is
+important that this model adhere to certain practices to help make the code easily readable and understood.</p>
+<ol class="arabic simple">
+<li><strong>Constant globals only</strong>: Data and variables should be explicitly passed into any functions that need them. Relying
+on global/module variables to carry mutable data is confusing and difficult to follow. Constant values used
+throughout a module can and should be defined as module variables, but these must not be changed.</li>
+<li><strong>No use of from, import *</strong>: This makes it unclear where variables or functions came from, since there is no
+explicit indication in this import statement.</li>
+</ol>
+</div>
+<div class="section" id="model-configuration">
+<h2>Model configuration<a class="headerlink" href="#model-configuration" title="Permalink to this headline">¶</a></h2>
+<p>The specifics of the model are determined by the <cite>pecans_config.cfg</cite> file in the same directory as <cite>run_pecans.py</cite>. At
+the beginning of a model run, this is ingested and represented by a <a class="reference internal" href="utilities_doc.html#pecans.utilities.config.BetterConfig" title="pecans.utilities.config.BetterConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BetterConfig</span></code></a>
+instance. This is derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.RawConfigParser</span></code>, and so behaves similarly in that options are
+organized into sections, but differently in that option values are automatically parsed into Python literals if possible,
+and only kept as a string if its type cannot be inferred. This instance will need to be passed to any functions that
+need it.</p>
+</div>
+<div class="section" id="solver-organization">
+<h2>Solver organization<a class="headerlink" href="#solver-organization" title="Permalink to this headline">¶</a></h2>
+<p>Each solver is placed in a sub-package of the main PECANS package, e.g. chemistry is handled by the chemistry package,
+transport by the transport package, etc. Within each package should be a &lt;package&gt;_setup module, (e.g. chemistry_setup,
+transport_setup) that has the setup_&lt;package&gt; method (e.g. setup_chemistry(), setup_transport(), etc.). These setup
+methods should require only one argument, the configuration object.</p>
+<p>This setup function needs to return the driver function that will actually solve the differential equations. If these
+solvers rely on information other than the chemical species’ concentrations that may change every timestep, that data
+should be read in within the driver function (e.g. the transport driver should call the function to read the current
+times’ wind fields within it, rather than rely on this being passed in from the domain). Different drivers may be
+defined that solve the differential equations differently, but all driver functions must accept the same inputs and
+return the same outputs. (Use of the <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> construct will be useful to consume extra keyword arguments not used.)
+When called from the domain object, these driver functions should have all inputs specified by keyword, not position.
+That way if a new driver is added that requires additional inputs, it is easy to add those to the call in the Domain
+object.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">PECANS Main Page</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chemistry_docs/emission_doc.html">Emissions options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chemistry_docs/initial_cond_doc.html">Initial conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chemistry_docs/mechanism_doc.html">Chemistry in PECANS</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Model Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#design-philosophy">Design philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-configuration">Model configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#solver-organization">Solver organization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities_doc.html">PECANS Utilities</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chemistry_docs/mechanism_doc.html" title="previous chapter">Chemistry in PECANS</a></li>
+      <li>Next: <a href="core_doc.html" title="next chapter">PECANS Core</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/model_design.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

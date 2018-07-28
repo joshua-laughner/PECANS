@@ -1,0 +1,320 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pecans.utilities.config &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pecans.utilities.config</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">ast</span> <span class="k">import</span> <span class="n">literal_eval</span>
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<span class="c1"># Adapted from https://stackoverflow.com/a/26634150, this regex can be used to split on commas that are outside of</span>
+<span class="c1"># brackets, i.e. [ ], only. It looks to find a comma that is NOT FOLLOWED by any number of non-bracket characters then a</span>
+<span class="c1"># closing bracket.</span>
+<span class="c1"># split_on_comma_re = re.compile(r&#39;,(?![^\[\]]*\])&#39;)</span>
+<span class="c1"># This will be useful in the future, for now we&#39;re just going to split on commas.</span>
+<span class="n">split_on_comma_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ConfigurationError"><a class="viewcode-back" href="../../../utilities_docs/config_utils_doc.html#pecans.utilities.config.ConfigurationError">[docs]</a><span class="k">class</span> <span class="nc">ConfigurationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An error that represents something wrong in the PECANS configuration.</span>
+
+<span class="sd">    This should be raised specifically if there is something wrong with what the user has given in the config file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BetterConfig"><a class="viewcode-back" href="../../../utilities_docs/config_utils_doc.html#pecans.utilities.config.BetterConfig">[docs]</a><span class="k">class</span> <span class="nc">BetterConfig</span><span class="p">(</span><span class="n">configparser</span><span class="o">.</span><span class="n">RawConfigParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extension of :class:`configparser.RawConfigParser` customized for use with PECANS</span>
+
+<span class="sd">    This class adds a :func:`~pecans.utilities.config.BetterConfig.section_as_dict()` method that allows you to quickly</span>
+<span class="sd">    return a section of the parser as a dictionary. It also overrides the :func:`configparser.RawConfigParser.read`</span>
+<span class="sd">    method to parse input values from strings into Python types using the function set as the attribute `valuexform`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Based off of RawConfigParser to allow storing values not as strings</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valuexform</span> <span class="o">=</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="BetterConfig.section_as_dict"><a class="viewcode-back" href="../../../utilities_docs/config_utils_doc.html#pecans.utilities.config.BetterConfig.section_as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">section_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the requested section&#39;s options as a dictionary</span>
+<span class="sd">        :param section: the section name</span>
+<span class="sd">        :type section: str</span>
+
+<span class="sd">        :return: the dictionary representation of the section</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="n">section</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="n">section</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span></div>
+
+<div class="viewcode-block" id="BetterConfig.read"><a class="viewcode-back" href="../../../utilities_docs/config_utils_doc.html#pecans.utilities.config.BetterConfig.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read one or more configuration files and stores their values internally</span>
+<span class="sd">        :param filenames: the file or files to read</span>
+<span class="sd">        :type filenames: str or list</span>
+<span class="sd">        :param encoding: any encoding recognized by :func:`open`</span>
+<span class="sd">        :return: the list of files successfully read</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rvalue</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="n">section</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">valuexform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">k</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">rvalue</span></div></div>
+
+
+<div class="viewcode-block" id="load_config_file"><a class="viewcode-back" href="../../../utilities_docs/config_utils_doc.html#pecans.utilities.config.load_config_file">[docs]</a><span class="k">def</span> <span class="nf">load_config_file</span><span class="p">(</span><span class="n">config_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a configuration file and returns a BetterConfig instance representing it</span>
+
+<span class="sd">    This function automatically instantiates a :class:`~pecans.utilities.config.BetterConfig` instance, sets it to parse</span>
+<span class="sd">    values into Python literals (including tuples or dicts)</span>
+<span class="sd">    :param config_file: the file to read.</span>
+<span class="sd">    :type config_file: str or list</span>
+<span class="sd">    :return: the :class:`~pecans.utilities.config.BetterConfig` object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">config_file</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Specified configuration file &quot;</span><span class="si">{}</span><span class="s1">&quot; does not exist&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_file</span><span class="p">))</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">BetterConfig</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">valuexform</span> <span class="o">=</span> <span class="n">_parse_line_value</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config</span></div>
+
+
+<span class="k">def</span> <span class="nf">_parse_as_dict</span><span class="p">(</span><span class="n">input_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a value string from a config file into a dictionary</span>
+
+<span class="sd">    This function takes a string of the form &quot;key1: value1, key2: value2&quot; etc. and parses it into a dictionary {key1:</span>
+<span class="sd">    value1, key2: value2}. The string *must* have the key and value separated by a colon and key-value pairs separated</span>
+<span class="sd">    by commas. If colons or commas are used in any other context, it will break. Individual values are parsed using</span>
+<span class="sd">    :func:&#39;~pecans.utilities.config._parse_as_literal`, keys are retained as strings.</span>
+
+<span class="sd">    :param input_string: the string to parse</span>
+<span class="sd">    :type input_string: str</span>
+
+<span class="sd">    :return: the resulting dictionary</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Parses an entry formatted as key : value, key : value, ...</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="n">split_on_comma_re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">input_string</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConfigurationError</span><span class="p">(</span><span class="s1">&#39;Error parsing configuration file:</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                     <span class="s1">&#39;  Attempting to parse it as a dictionary because of the presence of a colon,</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                     <span class="s1">&#39;  but I found a piece that does not have exactly one colon:</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                     <span class="s1">&#39;      </span><span class="si">{piece}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">piece</span><span class="o">=</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">_parse_as_literal</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_as_tuple</span><span class="p">(</span><span class="n">input_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a value string from a config file into a tuple</span>
+
+<span class="sd">    This function takes a string of the form value1, value2, value3 and transforms it into a tuple: (value1, value2,</span>
+<span class="sd">    value3). The values must be separated by commas; if commas are used in any other context, it cannot distinguish</span>
+<span class="sd">    that. Individual values are parsed using :func:&#39;~pecans.utilities.config._parse_as_literal`.</span>
+
+<span class="sd">    :param input_string: the string to parse</span>
+<span class="sd">    :type input_string: str</span>
+
+<span class="sd">    :return: the resulting tuple</span>
+<span class="sd">    :rtype: tuple</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="n">split_on_comma_re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">input_string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">_parse_as_literal</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_as_literal</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Try to parse the given string into a Python literal. The string must be exactly as it would be entered in the Python</span>
+<span class="sd">    interpreter to be parsed. If it can&#39;t do so, it keeps it as a string.</span>
+
+<span class="sd">    :param val: the string to parse</span>
+<span class="sd">    :type val: str</span>
+
+<span class="sd">    :return: the Python literal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># literal_eval is a safer way of converting strings into Python objects, it will not evaluate arbitrary</span>
+        <span class="c1"># expressions, only Python literal values. We can&#39;t use this to parse the whole entry because it won&#39;t be</span>
+        <span class="c1"># formatted exactly as a Python dict.</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">literal_eval</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">):</span>
+        <span class="c1"># If it fails, we just keep it as a string</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">val</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_line_value</span><span class="p">(</span><span class="n">input_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overall parsing function that, given a value string from a config file, decides how to parse it.</span>
+
+<span class="sd">    This function will hand off the input string to :func:&#39;~pecans.utilities.config._parse_as_literal`,</span>
+<span class="sd">    :func:&#39;~pecans.utilities.config._parse_as_tuple`, or :func:&#39;~pecans.utilities.config._parse_as_dict` depending on</span>
+<span class="sd">    the format of the string (if it contains colons, it gets parsed as a dict; if commas but no colons, then as a tuple;</span>
+<span class="sd">    otherwise just a regular Python literal value).</span>
+
+<span class="sd">    :param input_string: the string to parse</span>
+<span class="sd">    :type input_string: str</span>
+
+<span class="sd">    :return: the parsed value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">input_string</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_parse_as_dict</span><span class="p">(</span><span class="n">input_string</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s1">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">input_string</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_parse_as_tuple</span><span class="p">(</span><span class="n">input_string</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_parse_as_literal</span><span class="p">(</span><span class="n">input_string</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_domain_size_from_config"><a class="viewcode-back" href="../../../utilities_docs/config_utils_doc.html#pecans.utilities.config.get_domain_size_from_config">[docs]</a><span class="k">def</span> <span class="nf">get_domain_size_from_config</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function that reads the domain size (as a tuple) from a configuration object.</span>
+
+<span class="sd">    :param config: the configuration object to read the domain size from.</span>
+<span class="sd">    :type config: :class:`~pecans.utilities.config.BetterConfig`</span>
+
+<span class="sd">    :return: the shape of the domain, as a tuple with 1, 2, or 3 elements depending if the domain is 1-, 2-, or 3- D.</span>
+<span class="sd">    :rtype: tuple of int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;nx&#39;</span><span class="p">)</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;ny&#39;</span><span class="p">)</span>
+    <span class="n">nz</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">,</span> <span class="s1">&#39;nz&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Check that if nz &gt; 0, so are nx and ny; if ny &gt; 0, so is nx, because, e.g. nx, nz &gt; 0 but ny == 0 is an</span>
+    <span class="c1"># invalid setup (2D must be along x and y).</span>
+    <span class="k">if</span> <span class="n">nz</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nx</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ny</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConfigurationError</span><span class="p">(</span><span class="s1">&#39;If nz &gt; 0, nx and ny must also both be &gt; 0&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ny</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nx</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConfigurationError</span><span class="p">(</span><span class="s1">&#39;If ny &gt; 0, nx must also be &gt; 0&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">nx</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConfigurationError</span><span class="p">(</span><span class="s1">&#39;nx must be &gt;= 1&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,)</span>
+
+    <span class="k">return</span> <span class="n">shape</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">PECANS Main Page</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_user_docs/emission_doc.html">Emissions options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_user_docs/initial_cond_doc.html">Initial conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_user_docs/mechanism_doc.html">Chemistry in PECANS</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../model_design.html">Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utilities_doc.html">PECANS Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_docs/chem_code_doc.html">Chemistry solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../chemistry_docs/emis_code_doc.html">Emissions schemes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
