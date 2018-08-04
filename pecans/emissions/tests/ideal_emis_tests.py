@@ -1,17 +1,24 @@
+import copy
 import numpy as np
 import os
 import sys
 import unittest
 
 from ...utilities import config
-from ...core import Domain
+from ...main import Domain
+
+import pdb
 
 _my_dir = os.path.abspath(os.path.dirname(__file__))
 
 
-def _make_test_domain(config_file_name):
+def _make_test_domain(config_file_name, config_only=False):
     config_obj = config.load_config_file(os.path.join(_my_dir, 'test_config_files', config_file_name))
-    domain_obj = Domain(config_obj)
+    if not config_only:
+        domain_obj = Domain(config_obj)
+    else:
+        domain_obj = None
+
     return domain_obj, config_obj
 
 
@@ -62,3 +69,31 @@ class IdealEmisTests(unittest.TestCase):
             print('  Model emissions at time step {}: '.format(t), test_domain._emissions[test_specie])
 
         self.assertTrue(np.allclose(test_concentrations, check_concentrations), 'Simple emissions led to difference concentrations than expected')
+
+    def test_total_gaussian_emis(self):
+        """
+        Verify that the sum of emissions across a domain is equal to the requested total emissions
+        """
+        def compute_total_domain_emissions(the_domain):
+            area = the_domain._options['dx'] * the_domain._options['dy']
+            return np.sum(the_domain._emissions['A']) * area
+
+        _, base_test_config = _make_test_domain('total_gaussian_emis_test.cfg', config_only=True)
+        zeroed_dimensions = {'1D': ['y', 'z'], '2D': ['z'], '3D': []}
+        for dimensionality, z_dims in zeroed_dimensions.items():
+            with self.subTest(dimensionality=dimensionality):
+                # we can get away with a shallow copy b/c we just need to change ny/nz, which are just integers
+                test_config = copy.copy(base_test_config)
+                expected_total_emis = test_config.get('EMISSIONS', 'emission_opts')['total']
+                for dim in z_dims:
+                    test_config.set('DOMAIN', 'n'+dim, 0)
+                test_domain = Domain(test_config)
+                test_domain.execute()
+                domain_total = compute_total_domain_emissions(test_domain)
+                self.assertTrue(np.allclose(domain_total, expected_total_emis),
+                                msg='Sum of {} domain emissions is different than the specified total (sum = {:.3g} * '
+                                    'expected)'.format(dimensionality, domain_total / expected_total_emis))
+                if self.verbose:
+                    print('\n  {}: Expected total = {:.3g}, domain total = {:.3g}'.format(
+                        dimensionality, expected_total_emis, domain_total)
+                    )

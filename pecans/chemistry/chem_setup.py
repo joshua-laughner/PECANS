@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..utilities import domain_utilities, general_utils
-from ..utilities.config import ConfigurationError, get_domain_size_from_config
+from ..utilities.config import ConfigurationError, get_domain_size_from_config, list_missing_subopts
 from . import ideal
 
 
@@ -58,19 +58,27 @@ def get_initial_conditions(config, specie):
         return np.zeros(domain_size)
 
     elif initial_cond == 'gaussian':
-        if len(get_domain_size_from_config(config)) > 1:
-            raise NotImplementedError('Not yet configured for > 1D')
-
-        # Since we start at the halfway point, ending at a full box will give the right number of boxes, since arange
-        # excluded the stop value
-        x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(config)
-
+        x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(config, as_vectors=False)
+        # Will always need the x values. Append y and z as needed for 2D or 3D models
         gaussian_opts = config.get('CHEMISTRY', 'initial_cond_opts')
-        prefactor = gaussian_opts['height']
-        center = gaussian_opts['center']
-        sigma = gaussian_opts['width']
+        required_subopts = ['height', 'center_x', 'width_x']
+        if domain_utilities.is_at_least_2D(config):
+            required_subopts.extend(['center_y', 'width_y'])
+        if domain_utilities.is_3D(config):
+            required_subopts.extend(['center_z', 'width_z'])
 
-        return prefactor * general_utils.gaussian(center, sigma, x_coord, normalized=False)
+        list_missing_subopts(required_subopts, config, 'CHEMISTRY', 'initial_cond_opts', raise_error=True)
+
+        # Any options required here should be added to required_subopts before to verify that they are present and print
+        # a useful error message if not
+        prefactor = gaussian_opts['height']
+        gaussian_kwargs = {'center_x': gaussian_opts['center_x'], 'sigma_x': gaussian_opts['width_x'], 'x': x_coord}
+        if domain_utilities.is_at_least_2D(config):
+            gaussian_kwargs.update(center_y=gaussian_opts['center_y'], sigma_y=gaussian_opts['width_y'], y=y_coord)
+        if domain_utilities.is_3D(config):
+            gaussian_kwargs.update(center_z=gaussian_opts['center_z'], sigma_z=gaussian_opts['width_z'], z=z_coord)
+
+        return prefactor * general_utils.gaussian(normalized=False, **gaussian_kwargs)
     elif initial_cond == 'point':
         coords = domain_utilities.compute_coordinates_from_config(config)
 

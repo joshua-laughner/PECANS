@@ -5,7 +5,7 @@ import sys
 import unittest
 
 from ...utilities import config, domain_utilities, general_utils
-from ...core import Domain
+from ...main import Domain
 
 _my_dir = os.path.abspath(os.path.dirname(__file__))
 

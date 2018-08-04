@@ -11,7 +11,7 @@ else
     echo "Running under system Python"
 fi
 
-#python -m unittest pecans.transport.tests.simple_transport_tests "$@"
+python -m unittest pecans.transport.tests.simple_transport_tests "$@"
 python -m unittest pecans.emissions.tests.ideal_emis_tests "$@"
 python -m unittest pecans.chemistry.tests.ideal_chemistry_tests "$@"
 # python -m unittest pecans.transport.tests.core_tests "$@"

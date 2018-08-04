@@ -1,7 +1,7 @@
 import os
 
 from pecans.utilities.config import load_config_file
-from pecans.core import Domain
+from pecans.main import Domain
 
 import pdb
 

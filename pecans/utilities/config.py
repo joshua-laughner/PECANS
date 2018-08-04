@@ -1,5 +1,6 @@
 from ast import literal_eval
 import configparser
+import copy
 import os
 import re
 
@@ -60,6 +61,22 @@ class BetterConfig(configparser.RawConfigParser):
                 self.set(section, k, self.valuexform(self.get(section, k)))
 
         return rvalue
+
+    def __copy__(self):
+        new_copy = self.__class__()
+        for section in self.sections():
+            new_copy.add_section(section)
+            for opt in self.options(section):
+                new_copy.set(section, opt, self.get(section, opt))
+        return new_copy
+
+    def __deepcopy__(self, memodict={}):
+        new_copy = self.__class__()
+        for section in self.sections():
+            new_copy.add_section(section)
+            for opt in self.options(section):
+                new_copy.set(section, opt, copy.deepcopy(self.get(section, opt), memodict))
+        return new_copy
 
 
 def load_config_file(config_file):
@@ -216,3 +233,35 @@ def get_domain_size_from_config(config, all_dims=False):
         shape = (nx, ny, nz)
 
     return shape
+
+
+def list_missing_opts(required_opts, config, section, raise_error=False):
+    section_dict = config.section_as_dict(section)
+    missing_opts = _opts_missing_from_dict(section_dict, required_opts)
+    if not raise_error:
+        return missing_opts
+    elif len(missing_opts) > 0:
+        msg = 'Section "{}" in the configuration is missing the following options: {}'.format(
+            section, ', '.join(missing_opts)
+        )
+        raise ConfigurationError(msg)
+
+
+def list_missing_subopts(required_subopts, config, section, option, raise_error=False):
+    subopt_dict = config.get(section, option)
+    missing_opts = _opts_missing_from_dict(subopt_dict, required_subopts)
+    if not raise_error:
+        return missing_opts
+    elif len(missing_opts) > 0:
+        msg = 'Option "{}" in section "{}" is missing the following sub-options: {}'.format(
+            option, section, ', '.join(missing_opts)
+        )
+        raise ConfigurationError(msg)
+
+
+def _opts_missing_from_dict(opt_dict, required_opts):
+    missing_opts = []
+    for opt in required_opts:
+        if opt not in opt_dict.keys():
+            missing_opts.append(opt)
+    return missing_opts

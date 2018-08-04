@@ -45,8 +45,16 @@ class Domain(object):
         self._config = config
         self._chem_solver, species = chem_setup.setup_chemistry(config)
         self._setup_species(species)
-        self._transport_solver, self._get_current_transport = transport_setup.setup_transport(config)
-        self._emissions_solver = emissions_setup.setup_emissions(config)
+        if config.get('TRANSPORT', 'do_transport'):
+            self._transport_solver, self._get_current_transport = transport_setup.setup_transport(config)
+        else:
+            self._transport_solver = None
+            self._get_current_transport = None
+
+        if config.get('EMISSIONS', 'do_emissions'):
+            self._emissions_solver = emissions_setup.setup_emissions(config)
+        else:
+            self._emissions_solver = None
         self._emissions = dict()
 
         self._seconds_since_model_start = 0
@@ -180,3 +188,10 @@ class Domain(object):
             for name, emis in self._emissions.items():
                 this_var = ncdat.createVariable('E_' + name, io_utils.data_type, tuple(dims))
                 this_var[:] = emis
+
+    def _verify_model_state(self, fatal=True):
+        """
+        Carry out tests to check that the model is behaving sanely
+
+        :return: raises
+        """

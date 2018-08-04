@@ -1,7 +1,7 @@
 import numpy as np
 
 from pecans.utilities import general_utils, domain_utilities
-from pecans.utilities.config import ConfigurationError, get_domain_size_from_config
+from pecans.utilities.config import ConfigurationError, get_domain_size_from_config, list_missing_subopts
 
 import pdb
 
@@ -63,30 +63,52 @@ def _setup_gaussian_emissions(config):
     """
     # So for a Gaussian we multiply the total emissions by a normalized Gaussian so that in theory the integrated
     # emissions will be close to the total specified. (It'll probably be a little off b/c of discretization, this could
-    # be improved on later.) Then we divide by area because emissions are usually given in molec./area/second. We assume
-    # that the total is molec./second
+    # be improved on later.) Then we divide by area because emissions are usually given in molec./area/second.
     dy = config.get('DOMAIN', 'dy')
 
-    x, y, z = domain_utilities.compute_coordinates_from_config(config)
-
-    if y is not None or z is not None:
-        raise NotImplementedError('Gaussian emissions not set up for 2 or 3D models')
+    x, y, z = domain_utilities.compute_coordinates_from_config(config, as_vectors=False)
 
     emis_opts = config.get('EMISSIONS', 'emission_opts')
-    # Okay, this took far too long to figure out. Originally, I had E_tot / (dx*dy) * G_x
-    # but that always gave emissions off by a factor of dx. Why? The gaussian itself has
-    # units of m^{-1}, because it's normalized; essentially it's giving the probability 
-    # per unit length.
-    #
-    # What we want is \sum_x E_x dx dy = E_tot. That means E_x should have units of mol s^-1 m^-2,
-    # if E_tot has units of mol s^-1. That would seem to suggest that E_x = E_tot / (dx*dy) * G_x,
-    # except that G_x has units of m^-1, and it needs multiplied by dx to get from "fraction of
-    # emissions per unit length" to "fraction of emissions in a box of length dx". Which means a
-    # the dx cancels out, and we only really need to divide by dy to get E_x into mol m^-2 s^-1.
-    emissions_vector = emis_opts['total'] / dy * general_utils.gaussian(emis_opts['center'], emis_opts['width'], x=x, normalized=True)
+
+    # Check that the necessary options are present in the configuration
+    required_opts = ['total', 'center_x', 'width_x']
+    if domain_utilities.is_2D(config) or domain_utilities.is_3D(config):
+        required_opts += ['center_y', 'width_y']
+        use_2d_emis = True
+    else:
+        use_2d_emis = False
+
+    list_missing_subopts(required_opts, config, 'EMISSIONS', 'emission_opts', raise_error=True)
+
+    if not use_2d_emis:
+        # Okay, this took far too long to figure out. Originally, I had E_tot / (dx*dy) * G_x
+        # but that always gave emissions off by a factor of dx. Why? The gaussian itself has
+        # units of m^{-1}, because it's normalized; essentially it's giving the probability
+        # per unit length.
+        #
+        # What we want is \sum_x E_x dx dy = E_tot. That means E_x should have units of mol s^-1 m^-2,
+        # if E_tot has units of mol s^-1. That would seem to suggest that E_x = E_tot / (dx*dy) * G_x,
+        # except that G_x has units of m^-1, and it needs multiplied by dx to get from "fraction of
+        # emissions per unit length" to "fraction of emissions in a box of length dx". Which means a
+        # the dx cancels out, and we only really need to divide by dy to get E_x into molec m^-2 s^-1.
+        #
+        # We assume that the total is molec./second and we want molec./area/second
+        dy = config.get('DOMAIN', 'dy')
+        emissions_array = emis_opts['total'] / dy * general_utils.gaussian(emis_opts['center_x'], emis_opts['width_x'], x=x, normalized=True)
+    else:
+        # Similarly, in 2D, the Gaussian should be normalized to "probability per unit area". So we would
+        # multiply it by dx * dy, which cancels out the dx * dy that we divide the total emissions by to
+        # put it in per area.
+        emissions_array = emis_opts['total'] * general_utils.gaussian(center_x=emis_opts['center_x'], sigma_x=emis_opts['width_x'], x=x,
+                                                                      center_y=emis_opts['center_y'], sigma_y=emis_opts['width_y'], y=y,
+                                                                      normalized=True)
+        if domain_utilities.is_3D(config):
+            # if 3D, we need to set the non-surface boxes to zero. x and y will have the proper 3D shape, so every layer
+            # of emissions_array will be the same. Therefore, we just need to set all the levels above the surface to 0.
+            emissions_array[:, :, 1:] = 0
 
     def return_gaussian_vector(specie, seconds_since_model_start):
-        return emissions_vector
+        return emissions_array
 
     return return_gaussian_vector
 
