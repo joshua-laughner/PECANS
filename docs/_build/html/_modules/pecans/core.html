@@ -1,0 +1,267 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pecans.core &#8212; PECANS 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pecans.core</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">netCDF4</span> <span class="k">as</span> <span class="nn">ncdf</span>
+
+<span class="kn">from</span> <span class="nn">..emissions</span> <span class="k">import</span> <span class="n">emissions_setup</span>
+<span class="kn">from</span> <span class="nn">..chemistry</span> <span class="k">import</span> <span class="n">chem_setup</span>
+<span class="kn">from</span> <span class="nn">..transport</span> <span class="k">import</span> <span class="n">transport_setup</span>
+<span class="kn">from</span> <span class="nn">..utilities</span> <span class="k">import</span> <span class="n">domain_utilities</span><span class="p">,</span> <span class="n">io_utils</span>
+<span class="kn">from</span> <span class="nn">..utilities.config</span> <span class="k">import</span> <span class="n">get_domain_size_from_config</span>
+
+
+<div class="viewcode-block" id="Domain"><a class="viewcode-back" href="../../core_doc.html#pecans.core.Domain">[docs]</a><span class="k">class</span> <span class="nc">Domain</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object that represents the model domain that the simulation occurs on</span>
+
+<span class="sd">    :param config: a BetterConfig instance that contains the desired model setup as described in a PECANS config</span>
+<span class="sd">            file.</span>
+<span class="sd">    :type config: :class:`~pecans.utilities.config.BetterConfig`</span>
+
+<span class="sd">    In a multibox model, the &quot;domain&quot; is the collection of boxes that collectively make up the area that the model is to</span>
+<span class="sd">    simulate. In PECANS, that is represented by this object. Mainly, this stores information about the size and shape of</span>
+<span class="sd">    the domain (i.e. how many boxes in each dimension, how large each box it, etc.) and the concentration of all the</span>
+<span class="sd">    chemical species being tracked. It will also connect to the appropriate functions that calculate the change in</span>
+<span class="sd">    concentrations due to chemistry, transport, and emissions.</span>
+
+<span class="sd">    The Domain object is initialized by calling it with a BetterConfig object from the utilities subpackage. Then to</span>
+<span class="sd">    advance the model in time, call the `step()` method on the Domain instance, e.g.::</span>
+
+<span class="sd">        config = utils.config.load_config_file(&#39;pecans_config.cfg&#39;)</span>
+<span class="sd">        model_domain = Domain(config)</span>
+<span class="sd">        for t in range(100):</span>
+<span class="sd">            model_domain.step()</span>
+
+<span class="sd">    By default, the domain will automatically write an output netCDF file based on the frequency in the configuration</span>
+<span class="sd">    file. If you want to manually write the model state for any reason, you can call the ``write_output`` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">seconds_since_model_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_since_model_start</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_options</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">section_as_dict</span><span class="p">(</span><span class="s1">&#39;DOMAIN&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chem_solver</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">chem_setup</span><span class="o">.</span><span class="n">setup_chemistry</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_species</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transport_solver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_transport</span> <span class="o">=</span> <span class="n">transport_setup</span><span class="o">.</span><span class="n">setup_transport</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_emissions_solver</span> <span class="o">=</span> <span class="n">emissions_setup</span><span class="o">.</span><span class="n">setup_emissions</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_emissions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_since_model_start</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_setup_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper method that initializes self._chemical_species based on the configured initial conditions method</span>
+
+<span class="sd">        :param species: an iterable of chemical species names</span>
+<span class="sd">        :type species: iterable of str</span>
+<span class="sd">        :return: none</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="o">=</span> <span class="n">chem_setup</span><span class="o">.</span><span class="n">get_initial_conditions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="n">specie</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Domain.step"><a class="viewcode-back" href="../../core_doc.html#pecans.core.Domain.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute one model time step</span>
+
+<span class="sd">        This wil call, in sequence, the configured chemistry solver, transport solver, and emissions solver. It will</span>
+<span class="sd">        automatically write an output file if the time elapsed since the last output file is longer than the output</span>
+<span class="sd">        frequency specified in the configuration.</span>
+
+<span class="sd">        :return: none</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;dt&#39;</span><span class="p">]</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;dx&#39;</span><span class="p">]</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;dy&#39;</span><span class="p">]</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;dz&#39;</span><span class="p">]</span>
+        <span class="n">domain_size</span> <span class="o">=</span> <span class="n">get_domain_size_from_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+
+        <span class="c1"># Start by creating the delta array with the chemistry, since that will automatically set up delta as a</span>
+        <span class="c1"># dictionary with the same keys as self._chemical_species</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CHEMISTRY&#39;</span><span class="p">,</span> <span class="s1">&#39;do_chemistry&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chem_solver</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">TEMP</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">CAIR</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span><span class="p">)</span>
+
+        <span class="c1"># Now we need to handle emissions and transport</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TRANSPORT&#39;</span><span class="p">,</span> <span class="s1">&#39;do_transport&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">concentration</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">u_x</span><span class="p">,</span> <span class="n">u_y</span><span class="p">,</span> <span class="n">u_z</span><span class="p">,</span> <span class="n">D_x</span><span class="p">,</span> <span class="n">D_y</span><span class="p">,</span> <span class="n">D_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_transport</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seconds_since_model_start</span><span class="p">)</span>
+                <span class="c1"># This is one way of handling the transport code, which assumes that dy, dz are set to None if the model</span>
+                <span class="c1"># doesn&#39;t have that dimension. A better way would be to rework the transport code to be smarter about</span>
+                <span class="c1"># how it checks the input, and either set the unnecessary values to None inside it, or just ignore them</span>
+                <span class="n">dy_tmp</span> <span class="o">=</span> <span class="n">dy</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">domain_size</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">dz_tmp</span> <span class="o">=</span> <span class="n">dz</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">domain_size</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transport_solver</span><span class="p">(</span><span class="n">concentration</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="o">=</span><span class="n">dy_tmp</span><span class="p">,</span> <span class="n">dz</span><span class="o">=</span><span class="n">dz_tmp</span><span class="p">,</span>
+                                                                      <span class="n">u_x</span><span class="o">=</span><span class="n">u_x</span><span class="p">,</span> <span class="n">u_y</span><span class="o">=</span><span class="n">u_y</span><span class="p">,</span> <span class="n">u_z</span><span class="o">=</span><span class="n">u_z</span><span class="p">,</span> <span class="n">D_x</span><span class="o">=</span><span class="n">D_x</span><span class="p">,</span> <span class="n">D_y</span><span class="o">=</span><span class="n">D_y</span><span class="p">,</span> <span class="n">D_z</span><span class="o">=</span><span class="n">D_z</span><span class="p">,</span>
+                                                                      <span class="n">domain_size</span><span class="o">=</span><span class="n">domain_size</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;EMISSIONS&#39;</span><span class="p">,</span> <span class="s1">&#39;do_emissions&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emissions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emissions_solver</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span>
+                                                                             <span class="n">seconds_since_model_start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seconds_since_model_start</span><span class="p">,</span>
+                                                                             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_since_model_start</span> <span class="o">+=</span> <span class="n">dt</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_since_model_start</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;OUTPUT&#39;</span><span class="p">,</span> <span class="s1">&#39;output_frequency&#39;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">dt</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_output</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">seconds_since_model_start</span></div>
+
+<div class="viewcode-block" id="Domain.write_output"><a class="viewcode-back" href="../../core_doc.html#pecans.core.Domain.write_output">[docs]</a>    <span class="k">def</span> <span class="nf">write_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_file_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write an output netCDF file representing the instantaneous current model state</span>
+
+<span class="sd">        :param output_file_name: optional, allows you to specify the desired output file name. If not given, it will</span>
+<span class="sd">            default to</span>
+
+<span class="sd">            &quot;pecans_output_DDDdHHhMMmSSs.nc&quot;</span>
+
+<span class="sd">            where DDD, HH, MM, and SS are the days, minutes and seconds since the beginning of the model run.</span>
+<span class="sd">        :type output_file_name: str</span>
+
+<span class="sd">        :return: none</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">create_dim_and_coord</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+            <span class="n">dataset</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="p">))</span>
+            <span class="n">coord_var</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">io_utils</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,))</span>
+            <span class="n">coord_var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">coordinates</span>
+
+        <span class="k">if</span> <span class="n">output_file_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">seconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_since_model_start</span>
+            <span class="n">days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_since_model_start</span> <span class="o">//</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+            <span class="n">seconds</span> <span class="o">-=</span> <span class="n">days</span> <span class="o">*</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+            <span class="n">hours</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">//</span> <span class="mi">3600</span>
+            <span class="n">seconds</span> <span class="o">-=</span> <span class="n">hours</span> <span class="o">*</span> <span class="mi">3600</span>
+            <span class="n">minutes</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">//</span> <span class="mi">60</span>
+            <span class="n">seconds</span> <span class="o">-=</span> <span class="n">minutes</span> <span class="o">*</span> <span class="mi">60</span>
+
+            <span class="n">output_file_name</span> <span class="o">=</span> <span class="s1">&#39;pecans_output_</span><span class="si">{:03}</span><span class="s1">d</span><span class="si">{:02}</span><span class="s1">h</span><span class="si">{:02}</span><span class="s1">m</span><span class="si">{:02}</span><span class="s1">s.nc&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">days</span><span class="p">,</span> <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Writing </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_file_name</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">ncdf</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">output_file_name</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">clobber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF4&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncdat</span><span class="p">:</span>
+            <span class="n">x_coord</span><span class="p">,</span> <span class="n">y_coord</span><span class="p">,</span> <span class="n">z_coord</span> <span class="o">=</span> <span class="n">domain_utilities</span><span class="o">.</span><span class="n">compute_coordinates_from_config</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">)</span>
+
+            <span class="n">create_dim_and_coord</span><span class="p">(</span><span class="n">ncdat</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">x_coord</span><span class="p">)</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">y_coord</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">create_dim_and_coord</span><span class="p">(</span><span class="n">ncdat</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">y_coord</span><span class="p">)</span>
+                <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">z_coord</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">create_dim_and_coord</span><span class="p">(</span><span class="n">ncdat</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">z_coord</span><span class="p">)</span>
+                <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">conc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chemical_species</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">this_var</span> <span class="o">=</span> <span class="n">ncdat</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">io_utils</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+                <span class="n">this_var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">conc</span>
+
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">emis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emissions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">this_var</span> <span class="o">=</span> <span class="n">ncdat</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;E_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span> <span class="n">io_utils</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+                <span class="n">this_var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">emis</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">PECANS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">PECANS Main Page</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../config_user_guide.html">PECANS Configuration Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chemistry_user_docs/emission_doc.html">Emissions options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chemistry_user_docs/initial_cond_doc.html">Initial conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chemistry_user_docs/mechanism_doc.html">Chemistry in PECANS</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../model_design.html">Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core_doc.html">PECANS Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utilities_doc.html">PECANS Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chemistry_docs/chem_code_doc.html">Chemistry solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../chemistry_docs/emis_code_doc.html">Emissions schemes</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Joshua Laughner.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

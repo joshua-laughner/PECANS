@@ -5,7 +5,7 @@ import sys
 import unittest
 
 from . import test_cases
-from .. import backwards_euler as be, transport_driver as driver
+from .. import backwards_euler as be, transport_setup as driver
 from ...utilities import io_utils
 
 _my_dir = os.path.realpath(os.path.abspath(os.path.dirname(__file__)))
@@ -241,6 +241,7 @@ class TestTransport(unittest.TestCase):
                 print('2D gaussian: step {} of {}'.format(n, nsteps))
             domain = driver.solve(domain, be.construct_transport_matrix_with_stencil, **settings)
         self.plot_domain(domain, '2d_gaussian_final.png')
+
 
 if __name__ == '__main__':
     unittest.main()
