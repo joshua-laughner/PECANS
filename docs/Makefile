@@ -18,3 +18,8 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+# https://gist.github.com/cobyism/4730490 describes how to push a subdir
+# as the gh-pages branch
+publish:
+	(cd ../; git subtree push --prefix docs/_build/html/ origin gh-pages)
