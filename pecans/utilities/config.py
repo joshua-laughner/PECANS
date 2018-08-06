@@ -78,6 +78,16 @@ class BetterConfig(configparser.RawConfigParser):
                 new_copy.set(section, opt, copy.deepcopy(self.get(section, opt), memodict))
         return new_copy
 
+    def as_string(self):
+        s = ''
+        for section in self.sections():
+            s += '[{}]\n'.format(section)
+            for opt in self.options(section):
+                s += '{} = {}\n'.format(opt, self.get(section, opt))
+            s += '\n'
+
+        return s
+
 
 def load_config_file(config_file):
     """

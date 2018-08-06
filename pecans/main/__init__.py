@@ -189,6 +189,9 @@ class Domain(object):
                 this_var = ncdat.createVariable('E_' + name, io_utils.data_type, tuple(dims))
                 this_var[:] = emis
 
+            # Add the configuration as a global attribute
+            ncdat.pecans_config = self._config.as_string()
+
     def _verify_model_state(self, fatal=True):
         """
         Carry out tests to check that the model is behaving sanely
