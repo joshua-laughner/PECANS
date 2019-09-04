@@ -1,4 +1,5 @@
 import netCDF4 as ncdf
+import os
 
 from ..emissions import emissions_setup
 from ..chemistry import chem_setup
@@ -14,6 +15,10 @@ class Domain(object):
     :param config: a BetterConfig instance that contains the desired model setup as described in a PECANS config
             file.
     :type config: :class:`~pecans.utilities.config.BetterConfig`
+
+    :param output_dir: Directory to save the output files to. Only has an effect if write_output() is called without
+        specifying a file name. Default is the current directory.
+    :type output_dir: str
 
     In a multibox model, the "domain" is the collection of boxes that collectively make up the area that the model is to
     simulate. In PECANS, that is represented by this object. Mainly, this stores information about the size and shape of
@@ -40,9 +45,11 @@ class Domain(object):
     def species(self):
         return self._chemical_species
 
-    def __init__(self, config):
+    def __init__(self, config, output_dir='.'):
         self._options = config.section_as_dict('DOMAIN')
         self._config = config
+        self._output_dir = output_dir
+
         self._chem_solver, species = chem_setup.setup_chemistry(config)
         self._setup_species(species)
         if config.get('TRANSPORT', 'do_transport'):
@@ -145,7 +152,11 @@ class Domain(object):
 
             "pecans_output_DDDdHHhMMmSSs.nc"
 
-            where DDD, HH, MM, and SS are the days, minutes and seconds since the beginning of the model run.
+            where DDD, HH, MM, and SS are the days, minutes and seconds since the beginning of the model run. If an
+            output name is not specified, the files will be saved in the directory that was specified by the output_dir
+            argument to the constructor. If you specify the output file name in the call to this method, no directory
+            is prepended; if you want to save to a directory other than the current one, you must specify that in your
+            output file name.
         :type output_file_name: str
 
         :return: none
@@ -165,6 +176,8 @@ class Domain(object):
             seconds -= minutes * 60
 
             output_file_name = 'pecans_output_{:03}d{:02}h{:02}m{:02}s.nc'.format(days, hours, minutes, seconds)
+            output_file_name = os.path.join(self._output_dir, output_file_name)
+
 
         print('Writing {}'.format(output_file_name))
         with ncdf.Dataset(output_file_name, mode='w', clobber=True, format='NETCDF4') as ncdat:
