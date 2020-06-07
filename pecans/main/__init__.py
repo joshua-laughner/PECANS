@@ -37,6 +37,7 @@ class Domain(object):
     By default, the domain will automatically write an output netCDF file based on the frequency in the configuration
     file. If you want to manually write the model state for any reason, you can call the ``write_output`` method.
     """
+
     @property
     def seconds_since_model_start(self):
         return self._seconds_since_model_start
@@ -112,12 +113,27 @@ class Domain(object):
         dy = self._options['dy']
         dz = self._options['dz']
         domain_size = get_domain_size_from_config(self._config)
-
+        #x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(self._config, as_vectors=False)
+        #E_center_x = self._config.get('EMISSIONS', 'emission_opts')['center_x']
         # Start by creating the delta array with the chemistry, since that will automatically set up delta as a
         # dictionary with the same keys as self._chemical_species
         if self._config.get('CHEMISTRY', 'do_chemistry'):
-            self._chemical_species = self._chem_solver(dt, TEMP=None, CAIR=None, **self._chemical_species)
+            # TODO: accomodate different input parameters for two phases lifetime decay
+            if 'fixed_params' in self._config.section_as_dict('CHEMISTRY'):
+                temp = self._config.get('CHEMISTRY', 'fixed_params')['temp']
+                cair = self._config.get('CHEMISTRY', 'fixed_params')['nair']
+            else:
+                cair = None
+                temp = None
 
+            # self._chemical_species = self._chem_solver(dt, TEMP=None, CAIR=None, x_coord=x_coord, E_center=E_center_x,
+            #                                          **self._chemical_species)
+            if 'const_species' in self._config.section_as_dict('CHEMISTRY'):
+                const_species = self._config.get('CHEMISTRY', 'const_species')
+            else:
+                const_species = dict()
+            self._chemical_species = self._chem_solver(dt, TEMP=temp, CAIR=cair, const_species=const_species,
+                                                       **self._chemical_species)
         # Now we need to handle emissions and transport
         if self._config.get('TRANSPORT', 'do_transport'):
             for name, concentration in self._chemical_species.items():
@@ -128,7 +144,8 @@ class Domain(object):
                 dy_tmp = dy if len(domain_size) >= 2 else None
                 dz_tmp = dz if len(domain_size) >= 3 else None
                 self._chemical_species[name] = self._transport_solver(concentration, dt, dx=dx, dy=dy_tmp, dz=dz_tmp,
-                                                                      u_x=u_x, u_y=u_y, u_z=u_z, D_x=D_x, D_y=D_y, D_z=D_z,
+                                                                      u_x=u_x, u_y=u_y, u_z=u_z, D_x=D_x, D_y=D_y,
+                                                                      D_z=D_z,
                                                                       domain_size=domain_size)
 
         if self._config.get('EMISSIONS', 'do_emissions'):
@@ -161,6 +178,7 @@ class Domain(object):
 
         :return: none
         """
+
         def create_dim_and_coord(dataset, name, coordinates):
             dataset.createDimension(name, len(coordinates))
             coord_var = dataset.createVariable(name, io_utils.data_type, (name,))
@@ -177,7 +195,6 @@ class Domain(object):
 
             output_file_name = 'pecans_output_{:03}d{:02}h{:02}m{:02}s.nc'.format(days, hours, minutes, seconds)
             output_file_name = os.path.join(self._output_dir, output_file_name)
-
 
         print('Writing {}'.format(output_file_name))
         with ncdf.Dataset(output_file_name, mode='w', clobber=True, format='NETCDF4') as ncdat:

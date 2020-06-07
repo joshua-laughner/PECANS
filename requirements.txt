@@ -6,7 +6,8 @@ ipython-genutils==0.2.0
 jedi==0.10.2
 kiwisolver==1.0.1
 matplotlib==2.2.0
-numpy==1.14.1
+numpy==1.18.4
+netcdf4==1.5.3
 pexpect==4.2.1
 pickleshare==0.7.4
 prompt-toolkit==1.0.14

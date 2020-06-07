@@ -31,3 +31,17 @@ cdef TROE(double k0_300K, double n, double kinf_300K, double m, double TEMP, dou
     kinf_T  = kinf_300K * zt_help ** m          # k_inf at current T
     k_ratio = k0_T/kinf_T
     return k0_T/(1.0 + k_ratio)*0.6 ** (1.0 / (1.0+log10(k_ratio)**2))
+
+cdef TROEE(double A, double B, double k0_300K, double n, double kinf_300K, double m, double TEMP, double CAIR):
+    cdef double zt_help
+    cdef double k0_T
+    cdef double kinf_T
+    cdef double k_ratio
+    cdef double troe
+
+    zt_help = 300.0 / TEMP;
+    k0_T    = k0_300K   * zt_help ** n * CAIR   # k_0   at current T
+    kinf_T  = kinf_300K * zt_help ** m          # k_inf at current T
+    k_ratio = k0_T/kinf_T
+    troe = k0_T/(1.0 + k_ratio)*0.6 ** (1.0 / (1.0+log10(k_ratio)**2))
+    return A * exp(- B / TEMP) * troe

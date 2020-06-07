@@ -61,3 +61,54 @@ def init_explicit_first_order_chem_solver(lifetime_seconds, species_name='A', **
         return species_in
 
     return chem_solver, ('A',)
+
+def init_explicit_two_phases_first_order_chem_solver(first_lifetime_seconds, second_lifetime_seconds,
+                                                     first_phase_width, species_name = 'A', **kwargs):
+    """
+        Initialization function for the idealized two phases first-order chemistry solver.
+
+        :param first_lifetime_seconds: the first-order lifetime in seconds at the first phase, i.e. how long it would
+            take the concentration to decrease to :math:`1/e` of its original value.
+        :type first_lifetime_seconds: int or float
+
+        :param second_lifetime_seconds: the second-order lifetime in seconds at the second phase, i.e. how long it would
+            take the concentration to decrease to :math:`1/e` of its original value.
+        :type second_lifetime_seconds: int or float
+
+        :param first_phase_duration: the cutoff distance between first phase and second phase, i.e the distance
+            interval it experiences the first phase lifetime in the unit of meter.
+        :type first_phase_duration: int or float
+
+        :param species_name: optional, the name that the specie in this mechanism will be referred to by. Default is "A".
+            Changing this has no real effect on the mechanism, just what it is called in the output.
+
+        :param kwargs: extra keyword arguments not used in this function.
+
+        :return: the solver function and a tuple of species names.
+        :rtype: function and tuple of str
+        """
+    _print_unused_mech_opts(kwargs)
+
+    first_lifetime_seconds = float(first_lifetime_seconds)
+    second_lifetime_seconds = float(second_lifetime_seconds)
+    first_phase_width = float(first_phase_width)
+
+    if not isinstance(species_name, str):
+        raise ConfigurationError('The "species" mechanism_opt must be a species names, as a string')
+    else:
+        species = (species_name,)
+
+    def chem_solver(dt, TEMP, CAIR, x_coord, E_center, **species_in):
+        dt = float(dt)
+        for specie, conc in species_in.items():
+            # This ideal case assumes that all species are lost with the same first order rate constant, so
+            # dC/dt = k*C, and k = 1/lifetime converted to seconds.
+            species_in[specie] += -1 / first_lifetime_seconds * conc * dt * \
+                                  (x_coord <= first_phase_width+E_center) + \
+                                  -1 / second_lifetime_seconds * conc * dt * \
+                                  (x_coord > first_phase_width+E_center)
+
+        return species_in
+
+    return chem_solver, ('A',)
+

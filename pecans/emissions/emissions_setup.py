@@ -20,30 +20,49 @@ def setup_emissions(config):
     """
     _check_grid_box_size(config, 'dy')
     _check_grid_box_size(config, 'dz')
-
-    emis_type = config.get('EMISSIONS', 'emission_type')
-    if emis_type == 'gaussian':
-        get_emis_fxn = _setup_gaussian_emissions(config)
-    elif emis_type == 'point':
-        get_emis_fxn = _setup_point_emissions(config)
+    emis_species = config.get('EMISSIONS', 'emission_species')
+    emis_types = config.get('EMISSIONS', 'emission_type')
+    if type(emis_types) == str:
+        emis_types = (emis_types,)
+    if type(emis_species) == str:
+        emis_species = (emis_species,)
+    if len(emis_types) == len(emis_species):
+        get_emis_fxn = []
+        for emis_specie, emis_type in zip(emis_species, emis_types):
+            if emis_type == 'gaussian':
+                get_emis_fxn.append(_setup_gaussian_emissions(config, emis_specie))
+            elif emis_type == 'point':
+                get_emis_fxn.append(_setup_point_emissions(config, emis_specie))
+            else:
+                raise NotImplementedError('No emissions set up for "{}" emissions type'.format(emis_type))
     else:
-        raise NotImplementedError('No emissions set up for "{}" emissions type'.format(emis_type))
+        raise NotImplementedError('No specified emission type for all emission species')
 
     def emissions_solver(config, seconds_since_model_start, **species):
         dt = config.get('DOMAIN', 'dt')
         dz = config.get('DOMAIN', 'dz')
+        nx = config.get('DOMAIN', 'nx')
         emis_dict = dict()
+        emis_specie = config.get('EMISSIONS', 'emission_species')
+        #TODO: handle emissions for multiple species
         for specie, concentration in species.items():
-            emis = get_emis_fxn(specie, seconds_since_model_start)
-            species[specie] = concentration + emis / dz * dt
-            emis_dict[specie] = emis
+            if specie in emis_specie:
+                indx = emis_specie.index(specie)
+                this_emis_fxn = get_emis_fxn[indx]
+                emis = this_emis_fxn(specie, seconds_since_model_start)
+                species[specie] = concentration + emis / dz * dt
+                emis_dict[specie] = emis
+            else:
+                emis = np.zeros(nx,)
+                species[specie] = concentration + emis / dz * dt
+                emis_dict[specie] = emis
 
         return species, emis_dict
 
     return emissions_solver
 
 
-def _setup_gaussian_emissions(config):
+def _setup_gaussian_emissions(config, *species):
     """
     Helper function that sets up a Gaussian shaped emission source based on the configuration file.
 
@@ -67,8 +86,11 @@ def _setup_gaussian_emissions(config):
     dy = config.get('DOMAIN', 'dy')
 
     x, y, z = domain_utilities.compute_coordinates_from_config(config, as_vectors=False)
-
-    emis_opts = config.get('EMISSIONS', 'emission_opts')
+    species = species[0].lower()
+    if 'emission_opts' in config.section_as_dict('EMISSIONS'):
+        emis_opts = config.get('EMISSIONS', 'emission_opts')
+    elif species+'_emission_opts' in config.section_as_dict('EMISSIONS'):
+        emis_opts = config.get('EMISSIONS', species+'_emission_opts')
 
     # Check that the necessary options are present in the configuration
     required_opts = ['total', 'center_x', 'width_x']
@@ -78,7 +100,7 @@ def _setup_gaussian_emissions(config):
     else:
         use_2d_emis = False
 
-    list_missing_subopts(required_opts, config, 'EMISSIONS', 'emission_opts', raise_error=True)
+    #list_missing_subopts(required_opts, config, 'EMISSIONS', 'emission_opts', raise_error=True)
 
     if not use_2d_emis:
         # Okay, this took far too long to figure out. Originally, I had E_tot / (dx*dy) * G_x
@@ -113,7 +135,7 @@ def _setup_gaussian_emissions(config):
     return return_gaussian_vector
 
 
-def _setup_point_emissions(config):
+def _setup_point_emissions(config, *species):
     """
     Helper function that sets up a point emission source based on the configuration file.
 
@@ -134,7 +156,11 @@ def _setup_point_emissions(config):
 
     if y is not None or z is not None:
         raise NotImplementedError('Point emissions not set up for 2 or 3D models')
-    emis_opts = config.get('EMISSIONS', 'emission_opts')
+    species = species[0].lower()
+    if 'emission_opts' in config.section_as_dict('EMISSIONS'):
+        emis_opts = config.get('EMISSIONS', 'emission_opts')
+    elif species + '_emission_opts' in config.section_as_dict('EMISSIONS'):
+        emis_opts = config.get('EMISSIONS', species + '_emission_opts')
 
     idx = np.argmin(np.abs(x - emis_opts['center_x']))
     emis = np.zeros(get_domain_size_from_config(config))

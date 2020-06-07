@@ -3,6 +3,7 @@ import numpy as np
 from ..utilities import domain_utilities, general_utils
 from ..utilities.config import ConfigurationError, get_domain_size_from_config, list_missing_subopts
 from . import ideal
+from . import chem_solvers
 
 
 def setup_chemistry(config):
@@ -20,23 +21,34 @@ def setup_chemistry(config):
     """
 
     mechanism = config.get('CHEMISTRY', 'mechanism')
+    ideal = False;
     # Look up the right initialization function for the mechanism, we'll call it later in the try-except block to catch
     # cases where not enough mechanism options were provided. All init functions should use the **kwargs syntax to
     # consume extra mechanism options that do not apply to them.
     if mechanism == 'ideal_first_order':
         init_fxn = ideal.init_explicit_first_order_chem_solver
+        ideal = True
+    elif mechanism == 'ideal_two_phases_first_order':
+        init_fxn = ideal.init_explicit_two_phases_first_order_chem_solver
+        ideal = True
+    elif mechanism == "nox" or mechanism == "nox_pan":
+        init_fxn = chem_solvers.init_explicit_nox_chem_solver
     else:
         raise NotImplementedError('No chemistry mechanism defined for "mechanism" value "{}"'.format(mechanism))
 
-    try:
-        return init_fxn(**config.get('CHEMISTRY', 'mechanism_opts'))
-    except TypeError as err:
-        # Assume that the message will be something along the lines of
-        #   foo() missing 1 required positional argument: 'a'
-        # We just want the list of missing arguments after the colon
-        _, missing_args = err.args[0].split(':')
-        raise ConfigurationError('The "{}" mechanism required the following options be given to the "mechanism_opts" '
-                                 'configuration line: {}'.format(mechanism, missing_args.strip()))
+    if ideal:
+        try:
+            return init_fxn(**config.get('CHEMISTRY', 'mechanism_opts'))
+        except TypeError as err:
+            # Assume that the message will be something along the lines of
+            #   foo() missing 1 required positional argument: 'a'
+            # We just want the list of missing arguments after the colon
+            _, missing_args = err.args[0].split(':')
+            raise ConfigurationError('The "{}" mechanism required the following options be given to the "mechanism_opts" '
+                                     'configuration line: {}'.format(mechanism, missing_args.strip()))
+    #TODO: handle no constant species case
+    return init_fxn(mechanism=mechanism)
+
 
 
 def get_initial_conditions(config, specie):
