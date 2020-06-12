@@ -27,6 +27,11 @@ def name_nox_pan_test_ho_output_files(index, **config_opts):
     ho_ppt = config_opts['CHEMISTRY/const_species/HO'] / 2e19 * 1e12
     return 'pecans_ens_ho-{}ppt_emwidth-{}km'.format(ho_ppt, 36)
 
+def name_nox_voc_output_files(index, **config_opts):
+    p_hox = config_opts['CHEMISTRY/const_species/P_HOx'] / 1e6
+    rvoc = np.log10(config_opts['EMISSIONS/rvoc_emission_opts/total']+1)
+    return 'pecans_ens_p_hox-{}e6_rvoc-{}'.format(p_hox, rvoc)
+
 def nox_run():
     ho = np.arange(1e6, 15e6, 1e6)
     ensemble_variables = {'CHEMISTRY/const_species/HO': ho}
@@ -39,6 +44,22 @@ def nox_run():
                          member_naming_fxn=member_naming_fxn,
                          root_output_dir=os.path.join(_mydir, '../../MATLAB/PAN_Data', 'Workspaces', 'PECANS',
                                                       'lifetime-ensemble-nox-odetest'))
+
+    ens.run()
+
+def nox_voc_run():
+    p_hox = np.arange(0.5e7, 5e7, 0.5e7)
+    rvoc = np.array([0, 1e18, 1e19, 1e20, 1e21, 1e22, 1e23])
+    ensemble_variables = {'CHEMISTRY/const_species/P_HOx': p_hox, 'EMISSIONS/rvoc_emission_opts/total': rvoc}
+    member_naming_fxn = name_nox_voc_output_files
+    ens = EnsembleRunner(config_file,
+                         ensemble_variables=ensemble_variables,
+                         ensemble_mode='combinations',
+                         save_in_individual_dirs=False,
+                         save_final_output_only=True,
+                         member_naming_fxn=member_naming_fxn,
+                         root_output_dir=os.path.join(_mydir, '../../MATLAB/PAN_Data', 'Workspaces', 'PECANS',
+                                                      'lifetime-ensemble-nox-voc'))
 
     ens.run()
 
@@ -82,6 +103,13 @@ def main():
         nox_run()
     elif args.solver == 'nox_pan':
         nox_pan_run(args.test, args.emis)
+    elif args.solver == 'nox_voc':
+        nox_voc_run()
+    elif args.solver == 'single_test':
+        config_file_name = os.path.join(os.path.dirname(__file__), 'pecans_config.cfg')
+        config = load_config_file(config_file_name)
+        model_domain = Domain(config, output_dir='test/')
+        model_domain.execute()
     else:
         print("The chemical solver is not implemented.")
         quit()

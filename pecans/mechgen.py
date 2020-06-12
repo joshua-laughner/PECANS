@@ -11,9 +11,11 @@ import argparse
 from glob import glob
 import os.path
 import re
+from .utilities.config import load_config_file
 
 _mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
-
+config_file = os.path.join(os.path.dirname(__file__), '..', 'pecans_config.cfg')
+config = load_config_file(config_file)
 derivative_file = os.path.join(_mydir, 'chemderiv.pyx')
 pyx_indent = '    '
 
@@ -782,12 +784,14 @@ def generate_pecans_mechanism(species_file, reactions_file, extra_rate_def_file=
     return _parse_pecan_reactions(reactions_file)
 
 
-def generate_chemderiv_file(reactions):
+def generate_chemderiv_file(reactions, ode_solver):
     """
     Generates the chemical derivative .pyx file that contains all the derivative functions
      and rate constant functions plus the interface function that should be called from
      another Python program.
     :param reactions: a list of instances of Reactions
+    :return: nothing
+    :param ode_solver: the choice of chemistry kinetics solver
     :return: nothing
     """
     derivs = []
@@ -799,8 +803,11 @@ def generate_chemderiv_file(reactions):
         derivs.append(dC)
 
     with open(derivative_file, 'w') as f:
-        f.write('from libc.math cimport {}\n\n'.format(', '.join(c_math_fxns)))
+        f.write('from libc.math cimport {}\n'.format(', '.join(c_math_fxns)))
+        f.write('import numpy as np\n\n')
         f.write('\n'.join(_generate_interface_function(derivs)))
+        f.write('\n\n')
+        f.write('\n'.join(_generate_interface_ode_function(derivs, ode_solver)))
         f.write('\n\n')
         for d in derivs:
             f.write('\n'.join(d.func_def()))
@@ -830,9 +837,39 @@ def _generate_interface_function(derivatives):
     for d in derivatives:
         lines.append(pyx_indent + 'cdef double dconc_{} = '.format(d.changed_specie.name) +
                      d.func_signature.replace('double', '') + ' * dt')
-        dict_str.append('"conc_{0}": conc_{0} + dconc_{0}'.format(d.changed_specie.name))
+        dict_str.append('"{0}": conc_{0} + dconc_{0}'.format(d.changed_specie.name))
 
     lines.append(pyx_indent + 'return {{ {0} }}'.format(', '.join(dict_str)))
+    return lines
+
+def _generate_interface_ode_function(derivatives, ode_solver):
+    """
+    Helper function that generates the interface function
+    :param derivatives: a list of instances of Derivatives that represents all the derivatives that
+    need to be calculated
+    :param ode_solver: the choice of ode solver defined in assimulo package
+    :return: a list of strings, each string is a line in the interface function
+    """
+    if 'const_species' in config.section_as_dict('CHEMISTRY'):
+        const_species = config.get('CHEMISTRY', 'const_species')
+    else:
+        const_species = dict()
+
+    lines = []
+    dict_str = []
+
+    lines.append('def rhs(f, double t, param):')
+    lines.append(pyx_indent + '[{}] = f'.format(','.join(['this_conc_{} '.format(s.name) for s
+                                                          in Specie.instances if s.name not in const_species.keys()])))
+    lines.append(pyx_indent + '[TEMP, CAIR, {}] = param'.format(','.join(['this_conc_{} '.format(specie)
+                                                                           for specie in const_species.keys()])))
+    for d in derivatives:
+        if d.changed_specie.name not in const_species.keys():
+            lines.append(pyx_indent + 'cdef double dconc_{}_dt = '.format(d.changed_specie.name) +
+                    d.func_signature.replace('double', '').replace('conc', 'this_conc'))
+            dict_str.append('dconc_{0}_dt'.format(d.changed_specie.name))
+
+    lines.append(pyx_indent + 'return np.array([{0}])'.format(', '.join(dict_str)))
     return lines
 
 # Add styles and their respective parsing functions to this dictionary so that there
@@ -840,7 +877,7 @@ def _generate_interface_function(derivatives):
 
 style_parse_fxn_dict = {'pecans':generate_pecans_mechanism}
 
-def generate_mechanism(mechanism_style, species_file, reactions_file, additional_rates_file=None):
+def generate_mechanism(mechanism_style, species_file, reactions_file, ode_solver, additional_rates_file=None):
     try:
         build_fxn = style_parse_fxn_dict[mechanism_style]
     except KeyError:
@@ -848,7 +885,7 @@ def generate_mechanism(mechanism_style, species_file, reactions_file, additional
                                   '{}'.format(mechanism_style))
 
     reactions = build_fxn(species_file, reactions_file, additional_rates_file)
-    generate_chemderiv_file(reactions=reactions)
+    generate_chemderiv_file(reactions=reactions, ode_solver=ode_solver)
 
 def _main():
     """
@@ -857,7 +894,7 @@ def _main():
     """
     args = _get_args()
     generate_mechanism(mechanism_style=args.style.lower(), species_file=args.species_file,
-                       reactions_file=args.reactions_file)
+                       reactions_file=args.reactions_file, ode_solver=args.ode_solver)
 
 
 if __name__ == '__main__':

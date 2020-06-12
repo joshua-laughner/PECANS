@@ -31,7 +31,7 @@ def setup_chemistry(config):
     elif mechanism == 'ideal_two_phases_first_order':
         init_fxn = ideal.init_explicit_two_phases_first_order_chem_solver
         ideal = True
-    elif mechanism == "nox" or mechanism == "nox_pan":
+    elif 'nox' in mechanism:
         init_fxn = chem_solvers.init_explicit_nox_chem_solver
     else:
         raise NotImplementedError('No chemistry mechanism defined for "mechanism" value "{}"'.format(mechanism))
@@ -47,7 +47,7 @@ def setup_chemistry(config):
             raise ConfigurationError('The "{}" mechanism required the following options be given to the "mechanism_opts" '
                                      'configuration line: {}'.format(mechanism, missing_args.strip()))
     #TODO: handle no constant species case
-    return init_fxn(mechanism=mechanism)
+    return init_fxn(config=config)
 
 
 
@@ -65,11 +65,11 @@ def get_initial_conditions(config, specie):
     :rtype: :class:`numpy.ndarray`
     """
     initial_cond = config.get('CHEMISTRY', 'initial_cond')
-    if initial_cond == 'zero':
+    if initial_cond == 'zero' or specie not in initial_cond.keys():
         domain_size = get_domain_size_from_config(config)
         return np.zeros(domain_size)
 
-    elif initial_cond == 'gaussian':
+    elif initial_cond[specie] == 'gaussian':
         x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(config, as_vectors=False)
         # Will always need the x values. Append y and z as needed for 2D or 3D models
         gaussian_opts = config.get('CHEMISTRY', 'initial_cond_opts')
@@ -91,7 +91,7 @@ def get_initial_conditions(config, specie):
             gaussian_kwargs.update(center_z=gaussian_opts['center_z'], sigma_z=gaussian_opts['width_z'], z=z_coord)
 
         return prefactor * general_utils.gaussian(normalized=False, **gaussian_kwargs)
-    elif initial_cond == 'point':
+    elif initial_cond[specie] == 'point':
         coords = domain_utilities.compute_coordinates_from_config(config)
 
         point_opts = config.get('CHEMISTRY', 'initial_cond_opts')
@@ -108,8 +108,11 @@ def get_initial_conditions(config, specie):
         # centers will be only 1, 2, or 3, indices will be the same length
         indices = tuple([np.argmax(np.abs(coord - center)) for coord, center in zip(coords, centers)])
         concentration = np.zeros(get_domain_size_from_config(config))
-        concentration[indices] = point_opts['concentration']
+        concentration[indices] = point_opts['{}_concentration'.format(specie)]
         return concentration
-
+    elif initial_cond[specie] == 'flat':
+        domain_size = get_domain_size_from_config(config)
+        point_opts = config.get('CHEMISTRY', 'initial_cond_opts')
+        return np.zeros(domain_size) + point_opts['{}_concentration'.format(specie)]
     else:
         raise NotImplementedError('No method implemented for initial_cond == "{}"'.format(initial_cond))

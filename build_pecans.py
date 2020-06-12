@@ -52,7 +52,7 @@ def _user_choose_from_list(prompt, options):
                 except IndexError:
                     print('\n Response out of range.')
 
-def _build_mechanism(mechanism, mechanism_style):
+def _build_mechanism(mechanism, mechanism_style, ode_solver):
 
     species_file = os.path.join(mech_dir, mechanism + '.spc')
     reactions_file = os.path.join(mech_dir, mechanism + '.eqn')
@@ -62,7 +62,8 @@ def _build_mechanism(mechanism, mechanism_style):
 
     print('Building {}'.format(mechgen.derivative_file))
     mechgen.generate_mechanism(mechanism_style=mechanism_style, species_file=species_file,
-                               reactions_file=reactions_file, additional_rates_file=extra_rate_file)
+                               reactions_file=reactions_file, ode_solver=ode_solver,
+                               additional_rates_file=extra_rate_file)
 
     run_setup(os.path.join(_mydir, 'setup.py'), ['build_ext', '--inplace'])
 
@@ -75,6 +76,7 @@ def _get_args():
     parser = argparse.ArgumentParser(description='Build one of the chemical mechanisms for the PECANS model',
                                      epilog='If no mechanism name is provided, a user interactive prompt is given.')
     parser.add_argument('--style', '-s', default='pecans', help='What style the mechanism is. Default is "pecans"')
+    parser.add_argument('--solver', '-v', default='ExplicitEuler', help='The choice of ODE solver for chemistry kinetics.')
     parser.add_argument('mechanism', nargs='?', help='The name of the mechanism to use. Must be the base name of and'
                                                      ' .eqn and .spc file in {}'.format(mech_dir))
     args = parser.parse_args()
@@ -92,7 +94,7 @@ def main():
     else:
         mechanism_to_build = args.mechanism
 
-    _build_mechanism(mechanism_to_build, 'pecans')
+    _build_mechanism(mechanism_to_build, 'pecans', args.solver)
     _quit()
 
 if __name__ == '__main__':

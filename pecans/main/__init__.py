@@ -125,15 +125,14 @@ class Domain(object):
             else:
                 cair = None
                 temp = None
-
+            param = [temp, cair]
             # self._chemical_species = self._chem_solver(dt, TEMP=None, CAIR=None, x_coord=x_coord, E_center=E_center_x,
             #                                          **self._chemical_species)
             if 'const_species' in self._config.section_as_dict('CHEMISTRY'):
-                const_species = self._config.get('CHEMISTRY', 'const_species')
+                param += list(self._config.get('CHEMISTRY', 'const_species').values())
             else:
                 const_species = dict()
-            self._chemical_species = self._chem_solver(dt, TEMP=temp, CAIR=cair, const_species=const_species,
-                                                       **self._chemical_species)
+            self._chemical_species = self._chem_solver(dt, param, **self._chemical_species)
         # Now we need to handle emissions and transport
         if self._config.get('TRANSPORT', 'do_transport'):
             for name, concentration in self._chemical_species.items():

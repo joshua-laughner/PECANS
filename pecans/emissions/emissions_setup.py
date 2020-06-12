@@ -33,6 +33,8 @@ def setup_emissions(config):
                 get_emis_fxn.append(_setup_gaussian_emissions(config, emis_specie))
             elif emis_type == 'point':
                 get_emis_fxn.append(_setup_point_emissions(config, emis_specie))
+            elif emis_type == 'constant':
+                get_emis_fxn.append(_setup_constant_emissions(config, emis_specie))
             else:
                 raise NotImplementedError('No emissions set up for "{}" emissions type'.format(emis_type))
     else:
@@ -50,11 +52,11 @@ def setup_emissions(config):
                 indx = emis_specie.index(specie)
                 this_emis_fxn = get_emis_fxn[indx]
                 emis = this_emis_fxn(specie, seconds_since_model_start)
-                species[specie] = concentration + emis / dz * dt
+                species[specie] = concentration + emis / dz * dt /1e2
                 emis_dict[specie] = emis
             else:
                 emis = np.zeros(nx,)
-                species[specie] = concentration + emis / dz * dt
+                species[specie] = concentration + emis / dz * dt /1e2
                 emis_dict[specie] = emis
 
         return species, emis_dict
@@ -114,9 +116,12 @@ def _setup_gaussian_emissions(config, *species):
         # emissions per unit length" to "fraction of emissions in a box of length dx". Which means a
         # the dx cancels out, and we only really need to divide by dy to get E_x into molec m^-2 s^-1.
         #
+        # We also convert he E_x from molec m^-2 s^-1 to molec cm^-2 s^-1
         # We assume that the total is molec./second and we want molec./area/second
         dy = config.get('DOMAIN', 'dy')
         emissions_array = emis_opts['total'] / dy * general_utils.gaussian(emis_opts['center_x'], emis_opts['width_x'], x=x, normalized=True)
+        emissions_array = emissions_array / 1e4
+
     else:
         # Similarly, in 2D, the Gaussian should be normalized to "probability per unit area". So we would
         # multiply it by dx * dy, which cancels out the dx * dy that we divide the total emissions by to
@@ -124,6 +129,7 @@ def _setup_gaussian_emissions(config, *species):
         emissions_array = emis_opts['total'] * general_utils.gaussian(center_x=emis_opts['center_x'], sigma_x=emis_opts['width_x'], x=x,
                                                                       center_y=emis_opts['center_y'], sigma_y=emis_opts['width_y'], y=y,
                                                                       normalized=True)
+        emissions_array = emissions_array /1e4
         if domain_utilities.is_3D(config):
             # if 3D, we need to set the non-surface boxes to zero. x and y will have the proper 3D shape, so every layer
             # of emissions_array will be the same. Therefore, we just need to set all the levels above the surface to 0.
@@ -164,13 +170,44 @@ def _setup_point_emissions(config, *species):
 
     idx = np.argmin(np.abs(x - emis_opts['center_x']))
     emis = np.zeros(get_domain_size_from_config(config))
-    emis[idx] = emis_opts['total'] / (dx * dy)
+    emis[idx] = emis_opts['total'] / (dx * dy) /1e4
 
     def return_emis_vector(specie, seconds_since_model_start):
         return emis
 
     return return_emis_vector
 
+def _setup_constant_emissions(config, *species):
+    """
+    Helper function that sets up a constant emission source based on the configuration file.
+
+    :param config: the configuration object
+    :type config: :class:`~pecans.utilities.BetterConfig`
+
+    :return: a function that, when called, returns an array of emissions in molecules cm^-2 s^-1. It accepts two inputs
+        (species name and seconds since model start) but doesn't use either - just accepted for consistency with other
+        expected "get emissions" functions
+    :rtype: function
+    """
+    dx = config.get('DOMAIN', 'dx')
+    dy = config.get('DOMAIN', 'dy')
+
+    x, y, z = domain_utilities.compute_coordinates_from_config(config)
+
+    if y is not None or z is not None:
+        raise NotImplementedError('Constant emissions not set up for 2 or 3D models')
+    species = species[0].lower()
+    if 'emission_opts' in config.section_as_dict('EMISSIONS'):
+        emis_opts = config.get('EMISSIONS', 'emission_opts')
+    elif species + '_emission_opts' in config.section_as_dict('EMISSIONS'):
+        emis_opts = config.get('EMISSIONS', species + '_emission_opts')
+
+    emis = np.zeros(get_domain_size_from_config(config)) + emis_opts['total'] / (dx * dy) / 1e4
+
+    def return_emis_vector(specie, seconds_since_model_start):
+        return emis
+
+    return return_emis_vector
 
 def _check_grid_box_size(config, dim):
     """
