@@ -2,9 +2,12 @@ import numpy as np
 
 from pecans.utilities import general_utils, domain_utilities
 from pecans.utilities.config import ConfigurationError, get_domain_size_from_config, list_missing_subopts
-
+import netCDF4 as ncdf
 import pdb
+import os
 
+_mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
+input_dir = os.path.join(_mydir, '..', '..', 'inputs')
 
 def setup_emissions(config):
     """
@@ -102,6 +105,16 @@ def _setup_gaussian_emissions(config, *species):
     else:
         use_2d_emis = False
 
+    if 'forced_input' in config.section_as_dict('CHEMISTRY'):
+        f = ncdf.Dataset(os.path.join(input_dir, config.get('CHEMISTRY', 'forced_input')))
+        center_x = f.variables['center_x'][:]
+        width_x = f.variables['width_x'][:]
+    else:
+        center_x = emis_opts['total']
+        width_x = emis_opts['width_x']
+
+    total = emis_opts['total']
+
     #list_missing_subopts(required_opts, config, 'EMISSIONS', 'emission_opts', raise_error=True)
 
     if not use_2d_emis:
@@ -119,14 +132,14 @@ def _setup_gaussian_emissions(config, *species):
         # We also convert he E_x from molec m^-2 s^-1 to molec cm^-2 s^-1
         # We assume that the total is molec./second and we want molec./area/second
         dy = config.get('DOMAIN', 'dy')
-        emissions_array = emis_opts['total'] / dy * general_utils.gaussian(emis_opts['center_x'], emis_opts['width_x'], x=x, normalized=True)
+        emissions_array = total / dy * general_utils.gaussian(center_x, width_x, x=x, normalized=True)
         emissions_array = emissions_array / 1e4
 
     else:
         # Similarly, in 2D, the Gaussian should be normalized to "probability per unit area". So we would
         # multiply it by dx * dy, which cancels out the dx * dy that we divide the total emissions by to
         # put it in per area.
-        emissions_array = emis_opts['total'] * general_utils.gaussian(center_x=emis_opts['center_x'], sigma_x=emis_opts['width_x'], x=x,
+        emissions_array = total * general_utils.gaussian(center_x=center_x, sigma_x=width_x, x=x,
                                                                       center_y=emis_opts['center_y'], sigma_y=emis_opts['width_y'], y=y,
                                                                       normalized=True)
         emissions_array = emissions_array /1e4

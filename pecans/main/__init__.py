@@ -51,7 +51,8 @@ class Domain(object):
         self._config = config
         self._output_dir = output_dir
 
-        self._chem_solver, species = chem_setup.setup_chemistry(config)
+        self._chem_solver, species, self._chem_const_param, self._chem_forced_params, self._chemical_const_species = \
+            chem_setup.setup_chemistry(config)
         self._setup_species(species)
         if config.get('TRANSPORT', 'do_transport'):
             self._transport_solver, self._get_current_transport = transport_setup.setup_transport(config)
@@ -94,7 +95,7 @@ class Domain(object):
         """
         if n_seconds_to_run is None:
             n_seconds_to_run = self._options['run_time']
-
+        self.write_output(output_file_name='./inputs/pecans_skeleton_output.nc')
         while self.seconds_since_model_start < n_seconds_to_run:
             self.step()
 
@@ -118,21 +119,8 @@ class Domain(object):
         # Start by creating the delta array with the chemistry, since that will automatically set up delta as a
         # dictionary with the same keys as self._chemical_species
         if self._config.get('CHEMISTRY', 'do_chemistry'):
-            # TODO: accomodate different input parameters for two phases lifetime decay
-            if 'fixed_params' in self._config.section_as_dict('CHEMISTRY'):
-                temp = self._config.get('CHEMISTRY', 'fixed_params')['temp']
-                cair = self._config.get('CHEMISTRY', 'fixed_params')['nair']
-            else:
-                cair = None
-                temp = None
-            param = [temp, cair]
-            # self._chemical_species = self._chem_solver(dt, TEMP=None, CAIR=None, x_coord=x_coord, E_center=E_center_x,
-            #                                          **self._chemical_species)
-            if 'const_species' in self._config.section_as_dict('CHEMISTRY'):
-                param += list(self._config.get('CHEMISTRY', 'const_species').values())
-            else:
-                const_species = dict()
-            self._chemical_species = self._chem_solver(dt, param, **self._chemical_species)
+            self._chemical_species = self._chem_solver(dt, self._chem_const_param, self._chem_forced_params,
+                                                       **self._chemical_species)
         # Now we need to handle emissions and transport
         if self._config.get('TRANSPORT', 'do_transport'):
             for name, concentration in self._chemical_species.items():

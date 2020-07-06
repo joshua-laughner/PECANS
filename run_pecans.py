@@ -29,8 +29,16 @@ def name_nox_pan_test_ho_output_files(index, **config_opts):
 
 def name_nox_voc_output_files(index, **config_opts):
     p_hox = config_opts['CHEMISTRY/const_species/P_HOx'] / 1e6
-    rvoc = np.log10(config_opts['EMISSIONS/rvoc_emission_opts/total']+1)
-    return 'pecans_ens_p_hox-{}e6_rvoc-{}'.format(p_hox, rvoc)
+    rvoc = config_opts['CHEMISTRY/const_species/rVOC'] /2e19 *1e9
+    return 'pecans_ens_p_hox-{}e6_rvoc-{}ppb'.format(p_hox, rvoc)
+
+def name_nox_voc_output_files_for_emis_test(index, **config_opts):
+    total = config_opts['EMISSIONS/no_emission_opts/total'] / 1e25
+    return 'pecans_ens_nox_emis_{:.1f}e25_ovoc_0ppt_loc_o1'.format(total)
+
+def name_nox_voc_output_files_for_bkg_emis_test(index, **config_opts):
+    total = config_opts['EMISSIONS/no2_emission_opts/total'] / 1e23
+    return 'pecans_ens_nox_bkg_emis_{:.1f}e23_loc_01'.format(total)
 
 def nox_run():
     ho = np.arange(1e6, 15e6, 1e6)
@@ -47,11 +55,20 @@ def nox_run():
 
     ens.run()
 
-def nox_voc_run():
-    p_hox = np.arange(0.5e7, 5e7, 0.5e7)
-    rvoc = np.array([0, 1e18, 1e19, 1e20, 1e21, 1e22, 1e23])
-    ensemble_variables = {'CHEMISTRY/const_species/P_HOx': p_hox, 'EMISSIONS/rvoc_emission_opts/total': rvoc}
-    member_naming_fxn = name_nox_voc_output_files
+def nox_voc_run(test):
+    if test == 'p_hox_rvoc':
+        p_hox = np.arange(1.6e8, 2.4e8, 0.1e8)
+        rvoc = np.array([6e10, 7e10, 8e10])
+        ensemble_variables = {'CHEMISTRY/const_species/P_HOx': p_hox, 'CHEMISTRY/const_species/rVOC': rvoc}
+        member_naming_fxn = name_nox_voc_output_files
+    if test == 'emis':
+        total = np.arange(0.1e26, 1.1e26, 0.1e26)
+        ensemble_variables = {'EMISSIONS/no_emission_opts/total': total}
+        member_naming_fxn = name_nox_voc_output_files_for_emis_test
+    if test == 'bkg_no2':
+        no2_emis = np.arange(0.5e23, 15e24, 0.5e23)
+        ensemble_variables = {'EMISSIONS/no2_emission_opts/total': no2_emis}
+        member_naming_fxn = name_nox_voc_output_files_for_bkg_emis_test
     ens = EnsembleRunner(config_file,
                          ensemble_variables=ensemble_variables,
                          ensemble_mode='combinations',
@@ -104,7 +121,7 @@ def main():
     elif args.solver == 'nox_pan':
         nox_pan_run(args.test, args.emis)
     elif args.solver == 'nox_voc':
-        nox_voc_run()
+        nox_voc_run(args.test)
     elif args.solver == 'single_test':
         config_file_name = os.path.join(os.path.dirname(__file__), 'pecans_config.cfg')
         config = load_config_file(config_file_name)

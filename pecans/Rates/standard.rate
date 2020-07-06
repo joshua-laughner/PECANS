@@ -45,3 +45,4 @@ cdef TROEE(double A, double B, double k0_300K, double n, double kinf_300K, doubl
     k_ratio = k0_T/kinf_T
     troe = k0_T/(1.0 + k_ratio)*0.6 ** (1.0 / (1.0+log10(k_ratio)**2))
     return A * exp(- B / TEMP) * troe
+
