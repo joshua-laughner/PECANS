@@ -16,6 +16,10 @@ def name_first_order_output_files(index, **config_opts):
     emissions_width_km = config_opts['EMISSIONS/emission_opts/width_x'] / 1000
     return 'pecans_ens_tau-{}h_emwidth-{}km'.format(lifetime_hours, emissions_width_km)
 
+def name_first_order_winds_output_files(index, **config_opts):
+    winds = config_opts['TRANSPORT/wind_speeds/x']
+    return 'pecans_ens_windspeed_{}m_s'.format(winds)
+
 def name_two_phases_first_order_output_files(index, **config_opts):
     first_lifetime_hours = config_opts['CHEMISTRY/mechanism_opts/first_lifetime_seconds'] / 3600
     second_lifetime_horus = config_opts['CHEMISTRY/mechanism_opts/second_lifetime_seconds'] / 3600
@@ -25,6 +29,23 @@ def name_two_phases_first_order_output_files(index, **config_opts):
                                                                                       second_lifetime_horus,
                                                                                       first_phase_width,
                                                                                       emissions_width_km)
+
+
+def sims_first_order_run_winds():
+    # We want lifetimes that vary from 1-9 hours. This covers about the most extreme values we'd expect for summer NOx
+    # lifetime
+    winds= np.arange(3, 11, 1)
+
+    ens = EnsembleRunner(config_file,
+                         ensemble_variables={'TRANSPORT/wind_speeds/x': winds},
+                         ensemble_mode='combinations',
+                         save_in_individual_dirs=False,
+                         save_final_output_only=True,
+                         member_naming_fxn=name_first_order_winds_output_files,
+                         root_output_dir=os.path.join(_mydir, '../../MATLAB/PAN_Data', 'Workspaces', 'PECANS',
+                                                      'lifetime-ensemble'))
+
+    ens.run()
 
 def sims_first_order_run():
 
@@ -82,7 +103,7 @@ def main():
     parser.add_argument('solver', type=str, help='What the chemical solver is. Default is "first_order"')
     args = parser.parse_args()
     if args.solver == 'first_order':
-        sims_first_order_run()
+        sims_first_order_run_winds()
     elif args.solver == 'two_phases_first_order':
         sims_two_phases_first_order_run()
     else:
