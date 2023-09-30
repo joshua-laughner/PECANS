@@ -1,4 +1,6 @@
 .idea
+*.egg-info
+build/
 **/__pycache__
-pecans/chemderiv.pyx
+pecans/chemderiv.*
 pecans_config.cfg
