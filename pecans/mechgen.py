@@ -807,7 +807,10 @@ def generate_chemderiv_file(reactions, additional_params):
     with open(derivative_file, 'w') as f:
         f.write('from libc.math cimport {}\n'.format(', '.join(c_math_fxns)))
         f.write('import numpy as np\n\n')
-        f.write('{}'.format('\n'.join(additional_params)))
+        if additional_params is not None:
+            # TODO: additional parameters required should be specified in one of the mechanism files so that
+            #  we can check if they were given on the command line and provide a better error.
+            f.write('{}'.format('\n'.join(additional_params)))
         f.write('\n\n')
         f.write('\n'.join(_generate_interface_ode_function(derivs)))
         f.write('\n\n')
