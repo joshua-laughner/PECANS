@@ -21,22 +21,22 @@ def setup_chemistry(config):
     """
 
     mechanism = config.get('CHEMISTRY', 'mechanism')
-    ideal = False;
+    is_ideal = False;
     # Look up the right initialization function for the mechanism, we'll call it later in the try-except block to catch
     # cases where not enough mechanism options were provided. All init functions should use the **kwargs syntax to
     # consume extra mechanism options that do not apply to them.
     if mechanism == 'ideal_first_order':
         init_fxn = ideal.init_explicit_first_order_chem_solver
-        ideal = True
+        is_ideal = True
     elif mechanism == 'ideal_two_phases_first_order':
         init_fxn = ideal.init_explicit_two_phases_first_order_chem_solver
-        ideal = True
+        is_ideal = True
     elif 'nox' in mechanism:
         init_fxn = chem_solvers.init_explicit_nox_chem_solver
     else:
         raise NotImplementedError('No chemistry mechanism defined for "mechanism" value "{}"'.format(mechanism))
 
-    if ideal:
+    if is_ideal:
         try:
             return init_fxn(**config.get('CHEMISTRY', 'mechanism_opts'))
         except TypeError as err:

@@ -62,8 +62,9 @@ def init_explicit_first_order_chem_solver(lifetime_seconds, species_name='A', **
 
     return chem_solver, ('A',)
 
+
 def init_explicit_two_phases_first_order_chem_solver(first_lifetime_seconds, second_lifetime_seconds,
-                                                     first_phase_width, species_name = 'A', **kwargs):
+                                                     first_phase_width, species_name='A', **kwargs):
     """
         Initialization function for the idealized two phases first-order chemistry solver.
 
@@ -101,14 +102,14 @@ def init_explicit_two_phases_first_order_chem_solver(first_lifetime_seconds, sec
     def chem_solver(dt, TEMP, CAIR, x_coord, E_center, **species_in):
         dt = float(dt)
         for specie, conc in species_in.items():
-            # This ideal case assumes that all species are lost with the same first order rate constant, so
-            # dC/dt = k*C, and k = 1/lifetime converted to seconds.
+            # This ideal case assumes that all species are lost with the same two first order rate constants, so
+            # dC/dt = k*C, and k = 1/lifetime converted to seconds for each half of the domain.
             species_in[specie] += -1 / first_lifetime_seconds * conc * dt * \
-                                  (x_coord <= first_phase_width+E_center) + \
+                                  (x_coord <= first_phase_width + E_center) + \
                                   -1 / second_lifetime_seconds * conc * dt * \
-                                  (x_coord > first_phase_width+E_center)
+                                  (x_coord > first_phase_width + E_center)
 
         return species_in
 
-    return chem_solver, ('A',)
+    return chem_solver, species
 

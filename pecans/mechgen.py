@@ -849,6 +849,7 @@ def _generate_interface_function(derivatives):
     lines.append(pyx_indent + 'return {{ {0} }}'.format(', '.join(dict_str)))
     return lines
 
+
 def _generate_interface_ode_function(derivatives):
     """
     Helper function that generates the interface function

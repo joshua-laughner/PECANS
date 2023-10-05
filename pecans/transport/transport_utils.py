@@ -210,7 +210,7 @@ class Stencil:
     multiplied by (i.e. the :math:`1/(2\Delta x)` here). If not given, this is set to 1.0.
     """
 
-    #TODO: override __setattr__ to error if called and constant=True?
+    # TODO: override __setattr__ to error if called and constant=True?
     def __init__(self, *args, factored_coeff=1.0, dim=None, constant=False):
         self._points = []
         self._constant = False  # must initialize, but set to the input value later after all the input points are added

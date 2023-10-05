@@ -6,10 +6,9 @@ def construct_transport_matrix_with_stencil(dt, dx=None, dy=None, dz=None, u_x=N
     dt, dx, dy, dz, u_x, u_y, u_z, D_x, D_y, D_z, domain_size, boundary_conditions, n_model_dims = \
         tutils.check_transport_inputs(dt, dx, dy, dz, u_x, u_y, u_z, D_x, D_y, D_z, domain_size, boundary_conditions)
 
-
     # Construct the combined quantities used in the matrix
     r_x = D_x * dt / (dx**2)
-    C_rx = u_x * dt / dx  # the absent factor of 2 in the denominator is handles by the stencil
+    C_rx = u_x * dt / dx  # the absent factor of 2 in the denominator is handled by the stencil
 
     # Construct the Stencil instances that represent the time derivative, advection derivative, and diffusion derivative
     time_stencil = tutils.time_forward1_stencil.duplicate()

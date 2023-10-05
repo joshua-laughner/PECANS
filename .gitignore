@@ -1,6 +1,8 @@
 .idea
 *.egg-info
 build/
+# doc builds will be handled by readthedocs.io going forward
+docs/_build/
 **/__pycache__
 pecans/chemderiv.*
 pecans_config.cfg
