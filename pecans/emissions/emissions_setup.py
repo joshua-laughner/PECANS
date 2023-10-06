@@ -222,6 +222,7 @@ def _setup_constant_emissions(config, *species):
 
     return return_emis_vector
 
+
 def _check_grid_box_size(config, dim):
     """
     Helper function that checks that the boxes are a reasonable size.
@@ -238,8 +239,8 @@ def _check_grid_box_size(config, dim):
     :return: none, raises :class:`~pecans.utilities.config.ConfigurationError` if an invalid configuration is active.
     """
 
-    dx = config.get('DOMAIN', 'dx')
-    d2 = config.get('DOMAIN', dim)
+    dx = config['DOMAIN']['dx']
+    d2 = config['DOMAIN'][dim]
 
     # Quick check that the user didn't make dy some very small value in a 1D model.
     msg = '{dim} is {value}. Emissions are calculated using both dx and dy to compute the grid box area, even in a 1D model.'

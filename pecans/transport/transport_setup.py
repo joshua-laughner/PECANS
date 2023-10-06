@@ -28,7 +28,7 @@ def setup_transport(config):
 
 
 def get_solver(config):
-    method = config.get('TRANSPORT', 'scheme')
+    method = config['TRANSPORT']['scheme']
     if method == 'backwards_euler_2' or method == 'implicit2':
         return backwards_euler.construct_transport_matrix_with_stencil
     elif method == 'crank_nicholson':
@@ -38,11 +38,11 @@ def get_solver(config):
 
 
 def _get_wind_load_method(config):
-    method = config.get('TRANSPORT', 'wind_type')
+    method = config['TRANSPORT']['wind_type']
     domain_size = get_domain_size_from_config(config)
     if method == 'fixed':
-        winds_xyz = config.get('TRANSPORT', 'wind_speeds')
-        diffusion_xyz = config.get('TRANSPORT', 'diffusion_coeffs')
+        winds_xyz = config['TRANSPORT']['wind_speeds']
+        diffusion_xyz = config['TRANSPORT']['diffusion_coeffs']
 
         u_x = winds_xyz['x']
         D_x = diffusion_xyz['x']

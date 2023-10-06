@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import numpy as np
 
-from .config import BetterConfig, get_domain_size_from_config
+from .config import get_domain_size_from_config
 from . import general_utils
 
 import pdb
@@ -28,8 +28,8 @@ def compute_coordinates_from_config(config, as_vectors=True):
     dimensions = ['x', 'y', 'z']
     coords = []
     for dim in dimensions:
-        d_dim = config.get('DOMAIN', 'd' + dim)
-        n_dim = config.get('DOMAIN', 'n' + dim)
+        d_dim = config['DOMAIN'][f'd{dim}']
+        n_dim = config['DOMAIN'][f'n{dim}']
         if n_dim > 0:
             coords.append(coord_helper(n_dim, d_dim))
         else:

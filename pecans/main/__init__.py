@@ -12,13 +12,10 @@ class Domain(object):
     """
     Object that represents the model domain that the simulation occurs on
 
-    :param config: a BetterConfig instance that contains the desired model setup as described in a PECANS config
-            file.
-    :type config: :class:`~pecans.utilities.config.BetterConfig`
+    :param config: a dictionary that contains the desired model setup as described in a PECANS config TOML file.
 
     :param output_dir: Directory to save the output files to. Only has an effect if write_output() is called without
         specifying a file name. Default is the current directory.
-    :type output_dir: str
 
     In a multibox model, the "domain" is the collection of boxes that collectively make up the area that the model is to
     simulate. In PECANS, that is represented by this object. Mainly, this stores information about the size and shape of
@@ -46,21 +43,21 @@ class Domain(object):
     def species(self):
         return self._chemical_species
 
-    def __init__(self, config, output_dir='.'):
-        self._options = config.section_as_dict('DOMAIN')
+    def __init__(self, config: dict, output_dir: str = '.'):
+        self._options = config['DOMAIN']
         self._config = config
         self._output_dir = output_dir
 
         self._chem_solver, species, self._chem_const_param, self._chem_forced_params, self._chemical_const_species = \
             chem_setup.setup_chemistry(config)
         self._setup_species(species)
-        if config.get('TRANSPORT', 'do_transport'):
+        if config['TRANSPORT']['do_transport']:
             self._transport_solver, self._get_current_transport = transport_setup.setup_transport(config)
         else:
             self._transport_solver = None
             self._get_current_transport = None
 
-        if config.get('EMISSIONS', 'do_emissions'):
+        if config['EMISSIONS']['do_emissions']:
             self._emissions_solver = emissions_setup.setup_emissions(config)
         else:
             self._emissions_solver = None
@@ -118,11 +115,11 @@ class Domain(object):
         #E_center_x = self._config.get('EMISSIONS', 'emission_opts')['center_x']
         # Start by creating the delta array with the chemistry, since that will automatically set up delta as a
         # dictionary with the same keys as self._chemical_species
-        if self._config.get('CHEMISTRY', 'do_chemistry'):
+        if self._config['CHEMISTRY']['do_chemistry']:
             self._chemical_species = self._chem_solver(dt, self._chem_const_param, self._chem_forced_params,
                                                        **self._chemical_species)
         # Now we need to handle emissions and transport
-        if self._config.get('TRANSPORT', 'do_transport'):
+        if self._config['TRANSPORT']['do_transport']:
             for name, concentration in self._chemical_species.items():
                 u_x, u_y, u_z, D_x, D_y, D_z = self._get_current_transport(self._seconds_since_model_start)
                 # This is one way of handling the transport code, which assumes that dy, dz are set to None if the model
@@ -135,12 +132,12 @@ class Domain(object):
                                                                       D_z=D_z,
                                                                       domain_size=domain_size)
 
-        if self._config.get('EMISSIONS', 'do_emissions'):
+        if self._config['EMISSIONS']['do_emissions']:
             self._chemical_species, self._emissions = self._emissions_solver(config=self._config,
                                                                              seconds_since_model_start=self.seconds_since_model_start,
                                                                              **self._chemical_species)
 
-        output_frequency = self._config.get('OUTPUT', 'output_frequency')
+        output_frequency = self._config['OUTPUT']['output_frequency']
         self._seconds_since_model_start += dt
         if output_frequency != 0 and self._seconds_since_model_start % output_frequency < dt:
             self.write_output()
@@ -207,7 +204,7 @@ class Domain(object):
                 this_var[:] = emis
 
             # Add the configuration as a global attribute
-            ncdat.pecans_config = self._config.as_string()
+            ncdat.pecans_config = str(self._config)
 
     def _verify_model_state(self, fatal=True):
         """

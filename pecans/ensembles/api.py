@@ -119,7 +119,7 @@ class EnsembleRunner:
         self._final_output_only = save_final_output_only
 
         if save_final_output_only:
-            config.set('OUTPUT', 'output_frequency', 0)
+            config['OUTPUT']['output_frequency'] = 0
         elif not save_in_individual_dirs:
             raise RuntimeError('If not set to save the final output only (save_final_output_only=False), '
                                'the ensemble must be set to save model output in individual directories '
@@ -224,7 +224,7 @@ class EnsembleRunner:
         if self._final_output_only:
             # Setting the output frequency to 0 disables automatic writing of output by the domain. This way we can
             # manually save the final output with a more meaningful name
-            member_config.set('OUTPUT', 'output_frequency', 0)
+            member_config['OUTPUT']['output_frequency'] = 0
 
         member_domain = Domain(member_config, output_dir=output_dir)
         member_domain.execute()
@@ -249,10 +249,10 @@ class EnsembleRunner:
             opt_parts = opt.split('/')
             if len(opt_parts) == 2:
                 section, option = opt_parts
-                config.set(section, option, val)
+                config[section][option] = val
             elif len(opt_parts) == 3:
                 section, option, suboption = opt_parts
-                config.get(section, option)[suboption] = val
+                config[section][option][suboption] = val
             else:
                 raise NotImplementedError('Cannot handle config option "{}": expected 2 or 3 parts separated by slashes'.format(opt))
 
@@ -395,14 +395,14 @@ class EnsembleRunner:
                 msg = msg.rstrip('.') + ' (from ensemble variable "{key}").'.format(key=original_key)
             raise ValueError(msg)
 
-        if not config.has_section(section):
+        if section not in config:
             error_helper('No section "{section}" in the configuration'.format(section=section))
-        elif not config.has_option(section, option):
+        elif option not in config[section]:
             error_helper('No option "{option}" in section ("{section}")in the configuration'.format(option=option, section=section))
         elif suboption is not None:
             # If there's suboption, then we need to check that the specified option is a dictionary
             # (or list eventually) and that it has that key
-            config_opt = config.get(section, option)
+            config_opt = config[section][option]
             if not isinstance(config_opt, dict):
                 error_helper(
                     'A suboption ({subopt}) was given, but the option "{option}" does not have suboptions'.format(

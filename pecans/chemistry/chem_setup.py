@@ -6,12 +6,11 @@ from . import ideal
 from . import chem_solvers
 
 
-def setup_chemistry(config):
+def setup_chemistry(config: dict):
     """
     Return the driver function that, when called, will calculate the change in concentrations due to chemistry.
 
     :param config: the configuration object. Must include the option "mechanism" in the "CHEMISTRY" section
-    :type config: :class:`~pecans.utilities.BetterConfig`
 
     :return:
         1) the driver function. All driver functions must be called with dt, temperature, and number density of air
@@ -20,8 +19,8 @@ def setup_chemistry(config):
     :rtype: function, tuple of str
     """
 
-    mechanism = config.get('CHEMISTRY', 'mechanism')
-    is_ideal = False;
+    mechanism = config['CHEMISTRY']['mechanism']
+    is_ideal = False
     # Look up the right initialization function for the mechanism, we'll call it later in the try-except block to catch
     # cases where not enough mechanism options were provided. All init functions should use the **kwargs syntax to
     # consume extra mechanism options that do not apply to them.
@@ -38,7 +37,7 @@ def setup_chemistry(config):
 
     if is_ideal:
         try:
-            return init_fxn(**config.get('CHEMISTRY', 'mechanism_opts'))
+            return init_fxn(**config['CHEMISTRY']['mechanism_opts'])
         except TypeError as err:
             # Assume that the message will be something along the lines of
             #   foo() missing 1 required positional argument: 'a'
@@ -46,9 +45,8 @@ def setup_chemistry(config):
             _, missing_args = err.args[0].split(':')
             raise ConfigurationError('The "{}" mechanism required the following options be given to the "mechanism_opts" '
                                      'configuration line: {}'.format(mechanism, missing_args.strip()))
-    #TODO: handle no constant species case
+    # TODO: handle no constant species case
     return init_fxn(config=config)
-
 
 
 def get_initial_conditions(config, specie):
@@ -64,7 +62,7 @@ def get_initial_conditions(config, specie):
     :return: the array of initial concentrations
     :rtype: :class:`numpy.ndarray`
     """
-    initial_cond = config.get('CHEMISTRY', 'initial_cond')
+    initial_cond = config['CHEMISTRY']['initial_cond']
     if initial_cond == 'zero' or specie not in initial_cond.keys():
         domain_size = get_domain_size_from_config(config)
         return np.zeros(domain_size)
@@ -72,7 +70,7 @@ def get_initial_conditions(config, specie):
     elif initial_cond[specie] == 'gaussian':
         x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(config, as_vectors=False)
         # Will always need the x values. Append y and z as needed for 2D or 3D models
-        gaussian_opts = config.get('CHEMISTRY', 'initial_cond_opts')
+        gaussian_opts = config['CHEMISTRY']['initial_cond_opts']
         required_subopts = ['height', 'center_x', 'width_x']
         if domain_utilities.is_at_least_2D(config):
             required_subopts.extend(['center_y', 'width_y'])
@@ -112,7 +110,7 @@ def get_initial_conditions(config, specie):
         return concentration
     elif initial_cond[specie] == 'flat':
         domain_size = get_domain_size_from_config(config)
-        point_opts = config.get('CHEMISTRY', 'initial_cond_opts')
+        point_opts = config['CHEMISTRY']['initial_cond_opts']
         return np.zeros(domain_size) + point_opts['{}_concentration'.format(specie)]
     else:
         raise NotImplementedError('No method implemented for initial_cond == "{}"'.format(initial_cond))
