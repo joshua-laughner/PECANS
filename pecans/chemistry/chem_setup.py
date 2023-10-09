@@ -1,12 +1,16 @@
+import os.path
+
+import netCDF4 as ncdf
 import numpy as np
 
 from ..utilities import domain_utilities, general_utils
 from ..utilities.config import ConfigurationError, get_domain_size_from_config, list_missing_subopts
+from ..utilities.chem_utilities import MechanismInterface
 from . import ideal
 from . import chem_solvers
 
 
-def setup_chemistry(config: dict):
+def setup_chemistry(config: dict) -> MechanismInterface:
     """
     Return the driver function that, when called, will calculate the change in concentrations due to chemistry.
 
@@ -20,33 +24,37 @@ def setup_chemistry(config: dict):
     """
 
     mechanism = config['CHEMISTRY']['mechanism']
-    is_ideal = False
     # Look up the right initialization function for the mechanism, we'll call it later in the try-except block to catch
     # cases where not enough mechanism options were provided. All init functions should use the **kwargs syntax to
     # consume extra mechanism options that do not apply to them.
     if mechanism == 'ideal_first_order':
-        init_fxn = ideal.init_explicit_first_order_chem_solver
-        is_ideal = True
+        mech_info = ideal.init_explicit_first_order_chem_solver(config)
     elif mechanism == 'ideal_two_phases_first_order':
-        init_fxn = ideal.init_explicit_two_phases_first_order_chem_solver
-        is_ideal = True
+        mech_info = ideal.init_explicit_two_phases_first_order_chem_solver(config)
     elif 'nox' in mechanism:
-        init_fxn = chem_solvers.init_explicit_nox_chem_solver
+        mech_info = chem_solvers.init_explicit_nox_chem_solver(config)
     else:
         raise NotImplementedError('No chemistry mechanism defined for "mechanism" value "{}"'.format(mechanism))
 
-    if is_ideal:
-        try:
-            return init_fxn(**config['CHEMISTRY']['mechanism_opts'])
-        except TypeError as err:
-            # Assume that the message will be something along the lines of
-            #   foo() missing 1 required positional argument: 'a'
-            # We just want the list of missing arguments after the colon
-            _, missing_args = err.args[0].split(':')
-            raise ConfigurationError('The "{}" mechanism required the following options be given to the "mechanism_opts" '
-                                     'configuration line: {}'.format(mechanism, missing_args.strip()))
-    # TODO: handle no constant species case
-    return init_fxn(config=config)
+    const_params = get_constant_params_and_species(config)
+    const_params.update(mech_info.const_params)
+
+    forced_params = dict()  # eventually I will implement forced parameters that can change over time
+    forced_params.update(mech_info.forced_params)
+
+    # This allows us to check that e.g. temperature and number density of air are provided
+    missing_params = [k for k in mech_info.required_params if k not in const_params and k not in forced_params]
+    if missing_params:
+        raise ConfigurationError(f'The following species/parameters are required to be specified in the constant '
+                                 f'or forced parameters sections of the chemistry configuration, but were missing: '
+                                 f'{", ".join(missing_params)}')
+
+    return MechanismInterface(
+        chem_solver=mech_info.chem_solver,
+        species=mech_info.species,
+        const_params=const_params,
+        forced_params=forced_params
+    )
 
 
 def get_initial_conditions(config, specie):
@@ -114,3 +122,58 @@ def get_initial_conditions(config, specie):
         return np.zeros(domain_size) + point_opts['{}_concentration'.format(specie)]
     else:
         raise NotImplementedError('No method implemented for initial_cond == "{}"'.format(initial_cond))
+
+
+def get_constant_params_and_species(config: dict):
+    # Constant parameters include chemical species and non-chemical terms like temperature and nair.
+    # What makes them constant is that they do not change with time. They can vary in space; to support that,
+    # we allow the user to pass "file" as the argument instead of a value, which indicates that it must be read
+    # from the const_params_input_file.
+    const_params = dict()
+    if 'const_params' not in config['CHEMISTRY']:
+        # This is not an error; it just means there are no constant parameters. It may be an error if temperature
+        # and number density are not given elsewhere, but that is checked outside this function.
+        return const_params
+
+    if not isinstance(config['CHEMISTRY']['const_params'], dict):
+        raise ConfigurationError('The CHEMISTRY -> const_params option must be a dictionary of species')
+
+    domain_shape = domain_utilities.get_domain_size_from_config(config)
+    for param_name, param_value in config['CHEMISTRY']['const_params'].items():
+        if isinstance(param_value, (int, float)):
+            const_params[param_name] = np.full(domain_shape, float(param_value))
+        elif param_value == 'file':
+            const_params[param_name] = _get_const_param_from_file(config, param_name, domain_shape)
+        else:
+            raise ConfigurationError(f'Constant parameter "{param_name}" is neither a number nor the string "file"')
+
+    return const_params
+
+
+def _get_const_param_from_file(config: dict, param_name: str, domain_shape: tuple):
+    try:
+        const_param_file = config['CHEMISTRY']['const_param_input_file']
+    except KeyError:
+        raise ConfigurationError(f'"file" was given as the value for constant parameter {param_name}, but '
+                                 f'the "const_param_input_file" option was not listed in the CHEMISTRY section')
+
+    if not os.path.exists(const_param_file):
+        raise ConfigurationError(f'Configured const_param_input_file, {const_param_file}, does not exist')
+
+    with ncdf.Dataset(const_param_file) as ds:
+        if param_name not in ds.variables.keys():
+            raise ConfigurationError(f'Constant parameter {param_name} is not a variable in the constant parameter '
+                                     f'input file {const_param_file}')
+
+        param_value = ds[param_name][:]
+
+    if param_value.shape != domain_shape:
+        raise ConfigurationError(f'Constant parameter {param_name} in file {const_param_file} has a different array '
+                                 f'shape than the domain: domain shape = {domain_shape}, parameter shape = '
+                                 f'{param_value.shape}')
+
+    if np.any(param_value.mask):
+        raise ConfigurationError(f'Constant parameter {param_name} in file {const_param_file} has fill values - '
+                                 f'this is not permitted. All cells must have a valid value.')
+
+    return param_value.filled(0.0)

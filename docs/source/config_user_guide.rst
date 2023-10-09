@@ -4,29 +4,20 @@ PECANS Configuration Manual
 The config file
 ---------------
 
-The configuration file for PECANS is a `fairly standard format <https://docs.python.org/3/library/configparser.html#supported-ini-file-structure>`_
-for Linux-y configuration files. Sections are demarcated by all-caps text inside brackets; options within each section
-are given starting at the beginning of the line, followed by an equals sign, then the option value.
+Starting with v0.2.0, the configuration file for PECANS is a `TOML file <https://toml.io/en/>`_. We switched away from
+the previous INI file type because TOML automatically handles the nested lists/dictionaries that we had to manually
+parse before. Most usage should be pretty evident from the examples. For details on TOML syntax, see
+https://toml.io/en/v1.0.0.
 
-The values will get parsed into Python literals, following certain rules:
+.. note::
+   If you have existing v0.1 PECANS configuration files you want to convert, the main differences in syntax are:
+     1. boolean values must be lowercase in TOML (e.g. ``true``), whereas before they had to be capitalized (``True``)
+     2. string *values* must be quoted; strings used as keys can still be unquoted.
+     3. inline dictionaries (note that TOML calls dictionaries "tables") use the syntax ``{ key1 = value1, key2 = value2, ...}``,
+        whereas before we used ``key1: value1, key2: value2, ...``.
 
-* Simple values:
-
-    + **booleans**: written as either ``True`` or ``False``, with that exact capitalization
-    + **integers**: numbers without a decimal point, may start with a ``+``, ``-``, or number. E.g., ``1``, ``-20``, and
-      ``+300`` are all valid integers
-    + **floating point numbers** a.k.a. *real numbers*: numbers with a decimal point, may start with or without ``+`` or ``-``.
-      E.g., ``1.``, ``1.0``, and ``+1.0`` are all the same value.
-    + **strings**: anything not matching these rules (and not a compound value) is kept as a string
-
-* Compound values:
-
-    + **tuples**: if a value needs to contain multiple values, then separate each value with a comma. This will be stored
-      in Python as a tuple (basically an immutable list).
-    + **dictionaries**: basically a way to name sub options instead, these need to be written as ``key1: value1, key2: value2``
-      i.e. the name of each sub option, followed by a colon, then the value. The value must be one of the simple value types.
-
-Most of these will be used somewhere in the defaults, so peruse the default configuration for examples.
+   This only covers the difference in INI-style syntax vs. TOML-style syntax. For details about new or changed options,
+   see TODO: cross link to config migration guide.
 
 Output
 ------

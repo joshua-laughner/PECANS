@@ -858,23 +858,23 @@ def _generate_interface_ode_function(derivatives):
     :param ode_solver: the choice of ode solver defined in assimulo package
     :return: a list of strings, each string is a line in the interface function
     """
-    if 'const_species' in config.section_as_dict('CHEMISTRY'):
-        const_species = list(config.get('CHEMISTRY', 'const_species').keys())
+    if 'const_species' in config['CHEMISTRY']:
+        static_params = list(config['CHEMISTRY']['const_params'].keys())
     else:
-        const_species = list()
-    if 'forced_species' in config.section_as_dict('CHEMISTRY'):
-        const_species.extend(list(config.get('CHEMISTRY', 'forced_species')))
+        static_params = list()
+    if 'forced_params' in config['CHEMISTRY']:
+        static_params.extend(list(config['CHEMISTRY']['forced_params']))
 
     lines = []
     dict_str = []
 
     lines.append('def rhs(f, double t, param):')
     lines.append(pyx_indent + '[{}] = f'.format(','.join(['this_conc_{} '.format(s.name) for s
-                                                          in Specie.instances if s.name not in const_species])))
+                                                          in Specie.instances if s.name not in static_params])))
     lines.append(pyx_indent + '[TEMP, CAIR, {}] = param'.format(','.join(['this_conc_{} '.format(specie)
-                                                                           for specie in const_species])))
+                                                                           for specie in static_params])))
     for d in derivatives:
-        if d.changed_specie.name not in const_species:
+        if d.changed_specie.name not in static_params:
             lines.append(pyx_indent + 'cdef double dconc_{}_dt = '.format(d.changed_specie.name) +
                     d.func_signature.replace('double', '').replace('conc', 'this_conc'))
             dict_str.append('dconc_{0}_dt'.format(d.changed_specie.name))

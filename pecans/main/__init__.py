@@ -48,9 +48,8 @@ class Domain(object):
         self._config = config
         self._output_dir = output_dir
 
-        self._chem_solver, species, self._chem_const_param, self._chem_forced_params, self._chemical_const_species = \
-            chem_setup.setup_chemistry(config)
-        self._setup_species(species)
+        self._mechanism = chem_setup.setup_chemistry(config)
+        self._chemical_species = self._setup_species(self._mechanism.species)
         if config['TRANSPORT']['do_transport']:
             self._transport_solver, self._get_current_transport = transport_setup.setup_transport(config)
         else:
@@ -73,9 +72,10 @@ class Domain(object):
         :type species: iterable of str
         :return: none
         """
-        self._chemical_species = dict()
+        chemical_species = dict()
         for specie in species:
-            self._chemical_species[specie] = chem_setup.get_initial_conditions(self._config, specie)
+            chemical_species[specie] = chem_setup.get_initial_conditions(self._config, specie)
+        return chemical_species
 
     def execute(self, n_seconds_to_run=None):
         """
@@ -111,13 +111,12 @@ class Domain(object):
         dy = self._options['dy']
         dz = self._options['dz']
         domain_size = get_domain_size_from_config(self._config)
-        #x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(self._config, as_vectors=False)
-        #E_center_x = self._config.get('EMISSIONS', 'emission_opts')['center_x']
+
         # Start by creating the delta array with the chemistry, since that will automatically set up delta as a
         # dictionary with the same keys as self._chemical_species
         if self._config['CHEMISTRY']['do_chemistry']:
-            self._chemical_species = self._chem_solver(dt, self._chem_const_param, self._chem_forced_params,
-                                                       **self._chemical_species)
+            self._chemical_species = self._mechanism.call_solver(dt, self._chemical_species)
+
         # Now we need to handle emissions and transport
         if self._config['TRANSPORT']['do_transport']:
             for name, concentration in self._chemical_species.items():
@@ -133,9 +132,10 @@ class Domain(object):
                                                                       domain_size=domain_size)
 
         if self._config['EMISSIONS']['do_emissions']:
-            self._chemical_species, self._emissions = self._emissions_solver(config=self._config,
-                                                                             seconds_since_model_start=self.seconds_since_model_start,
-                                                                             **self._chemical_species)
+            self._chemical_species, self._emissions = self._emissions_solver.solve_emissions(
+                config=self._config, seconds_since_model_start=self.seconds_since_model_start,
+                species_concentrations=self._chemical_species
+            )
 
         output_frequency = self._config['OUTPUT']['output_frequency']
         self._seconds_since_model_start += dt
