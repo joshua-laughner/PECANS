@@ -33,7 +33,7 @@ Code documentation
    :glob:
 
    model_design.rst
-   core_doc.rst
+   main_doc.rst
    utilities_doc.rst
    chemistry_docs/*
 

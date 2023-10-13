@@ -18,7 +18,7 @@ changes will automatically be available to the package without needed to rerun t
 
 ## Documentation
 
-Full documentation is available at https://joshua-laughner.github.io/PECANS/.
+Full documentation is available at https://pecans.readthedocs.io/en/stable/.
 
 ## Citing 
 

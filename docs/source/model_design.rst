@@ -1,11 +1,11 @@
 Model Design
 ============
 
-At its core, the PECANS model is built around the :class:`~pecans.core.Domain` object, which contains the model
+At its core, the PECANS model is built around the :class:`~pecans.main.Domain` object, which contains the model
 concentrations within it and is linked to various solvers that handle solving the necessary differential equations for
 a single physical process. For example, right now, there are solvers for chemistry, transport and emissions. By
 `Strang operator splitting <https://en.wikipedia.org/wiki/Strang_splitting>`_, each of these solvers can be applied in
-turn during a time step, and so in the :func:`~pecans.core.Domain.step` method, each solver is applied to the array of
+turn during a time step, and so in the :func:`~pecans.main.Domain.step` method, each solver is applied to the array of
 concentrations separately.
 
 PECANS allows for the possibility of different solvers, for example, some methods are more accurate but take more time
