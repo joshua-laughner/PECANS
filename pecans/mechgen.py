@@ -816,6 +816,8 @@ def generate_chemderiv_file(reactions, additional_params):
         f.write('\n\n')
         f.write('\n'.join(_generate_interface_function(derivs)))
         f.write('\n\n')
+        f.write('\n'.join(_generate_species_function()))
+        f.write('\n\n')
         for d in derivs:
             f.write('\n'.join(d.func_def()))
             f.write('\n\n\n')
@@ -892,6 +894,15 @@ def _generate_interface_ode_function(derivatives):
     derivatives_list = ', '.join(dict_str)
     lines.append(f'{pyx_indent}return np.array([{derivatives_list}])')
     return lines
+
+
+def _generate_species_function():
+    species_names = "', '".join(s.name for s in Specie.instances)
+    return [
+        'def mech_species():',
+        f"{pyx_indent}return ('{species_names}')"
+    ]
+
 
 # Add styles and their respective parsing functions to this dictionary so that there
 # is a single object describing which parsing function to call for which style

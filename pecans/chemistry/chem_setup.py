@@ -31,7 +31,7 @@ def setup_chemistry(config: dict) -> MechanismInterface:
         mech_info = ideal.init_explicit_first_order_chem_solver(config)
     elif mechanism == 'ideal_two_phases_first_order':
         mech_info = ideal.init_explicit_two_phases_first_order_chem_solver(config)
-    elif 'nox' in mechanism:
+    elif mechanism == 'compiled':
         mech_info = chem_solvers.init_explicit_nox_chem_solver(config)
     else:
         raise NotImplementedError('No chemistry mechanism defined for "mechanism" value "{}"'.format(mechanism))

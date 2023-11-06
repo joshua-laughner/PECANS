@@ -3,12 +3,11 @@ The ``chem_solver`` module contains the functions necessary to initialize and so
 """
 import os
 import sys
-from typing import Sequence
 
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from ..utilities.config import ConfigurationError, get_domain_size_from_config
+from ..utilities.config import ConfigurationError
 from ..utilities.chem_utilities import MechanismInterface
 
 _mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
@@ -48,30 +47,16 @@ def init_explicit_nox_chem_solver(config: dict):
     :rtype: function and tuple of str
     """
     try:
-        from ..chemderiv import rhs
+        from ..chemderiv import rhs, mech_species
     except ImportError:
-        print('HINT: Your chemderiv module does not exist or does not include an `rhs` function - try rebuilding.',
-              file=sys.stderr)
+        print('HINT: Your chemderiv module does not exist or does not include an `rhs` and `mech_species` function - '
+              'try rebuilding.', file=sys.stderr)
         raise
 
-    # TODO: have the mechanism module include a function that just returns the species so we don't need this
-    species_file = os.path.join(mech_dir, config['CHEMISTRY']['mechanism'] + '.spc')
-    mech_species = _parse_pecan_species(species_file)
-    if 'fixed_params' in config['CHEMISTRY']:
-        temp = config['CHEMISTRY']['fixed_params']['temp']
-        cair = config['CHEMISTRY']['fixed_params']['nair']
-    else:
-        msg = 'Temperature and air densities are not provided.'
-        raise ConfigurationError(msg)
+    mech_species = mech_species()
 
-    # TODO: I see what's going on here - "const_species" are those that get set to a single value throughout
-    #  the entire domain and "forced_species" are ones that have spatially-varying values. This seems a bit
-    #  confusing to me - I will redo this to combine both of these into one "fixed_species" configuration option
-    #  that can either specify a numeric value or the string "file" which means take the concentrations from the
-    #  input file. Long term I think we should implement "forced_species" as time varying ones - but those should
-    #  have more options (i.e. periodic in time, extrapolated in time, exact in time as well as allowing a single
-    #  value for the whole domain per time or taking the whole domain).
-
+    # TODO: this and chem_setup.get_constant_params_and_species are inconsistent. Figure out how I'm going to do this,
+    #  document it, and fix.
     # Make sure that the driver knows not to update the constant and forced species/parameters
     const_and_forced_params = []
     if 'const_params' in config['CHEMISTRY']:
@@ -79,13 +64,15 @@ def init_explicit_nox_chem_solver(config: dict):
     if 'forced_params' in config['CHEMISTRY']:
         const_and_forced_params.extend(config['CHEMISTRY']['forced_params'].keys())
 
+    if 'TEMP' not in const_and_forced_params or 'CAIR' not in const_and_forced_params:
+        raise ConfigurationError('Temperature (TEMP) and number density of air (CAIR) must be provided as constant or '
+                                 'fixed parameters')
+
     species_out = tuple([specie for specie in mech_species if specie not in const_and_forced_params])
+    print('Model will solve for concentrations of: {}'.format(', '.join(species_out)))
+    print('The following species or parameters will be constant or fixed: {}'.format(', '.join(const_and_forced_params)))
 
     def chem_solver(dt: float, const_param: dict, forced_param: dict, species_in: dict) -> dict:
-        # TODO: change to solve_ive and swap the parameters for a dict (will require modifying mechgen, but
-        #  the odds of getting the parameters out of order this way are just too great). Will also need modified
-        #  to handle const_param and forced_param being dictionaries now.
-        # TODO: have mechgen handle forced/const species correctly
         dt = float(dt)
         grid_shape, num_grid_cells = [(conc.shape, conc.size) for _, conc in species_in.items()][0]
 
