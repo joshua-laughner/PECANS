@@ -5,4 +5,4 @@ build/
 docs/_build/
 **/__pycache__
 pecans/chemderiv.*
-pecans_config.cfg
+pecans_config.toml
