@@ -14,7 +14,7 @@ import re
 from .utilities.config import load_config_file
 
 _mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
-config_file = os.path.join(os.path.dirname(__file__), '..', 'pecans_config.cfg')
+config_file = os.path.join(os.path.dirname(__file__), '..', 'pecans_config.toml')
 config = load_config_file(config_file)
 derivative_file = os.path.join(_mydir, 'chemderiv.pyx')
 pyx_indent = '    '
@@ -816,6 +816,8 @@ def generate_chemderiv_file(reactions, additional_params):
         f.write('\n\n')
         f.write('\n'.join(_generate_interface_function(derivs)))
         f.write('\n\n')
+        f.write('\n'.join(_generate_species_function()))
+        f.write('\n\n')
         for d in derivs:
             f.write('\n'.join(d.func_def()))
             f.write('\n\n\n')
@@ -868,19 +870,39 @@ def _generate_interface_ode_function(derivatives):
     lines = []
     dict_str = []
 
-    lines.append('def rhs(f, double t, param):')
-    lines.append(pyx_indent + '[{}] = f'.format(','.join(['this_conc_{} '.format(s.name) for s
-                                                          in Specie.instances if s.name not in static_params])))
-    lines.append(pyx_indent + '[TEMP, CAIR, {}] = param'.format(','.join(['this_conc_{} '.format(specie)
-                                                                           for specie in static_params])))
+    # First we define the outer function that handles expanding the input variables
+    lines.append('def rhs(double t, concentrations, param):')
+    concentration_vars = ','.join(f'this_conc_{s.name}' for s in Specie.instances if s.name not in static_params)
+    lines.append(f'{pyx_indent}{concentration_vars} = concentrations')
+    lines.append(f'{pyx_indent}return _rhs_inner(t, {concentration_vars}, **param)')
+    lines.append('')
+
+    # Then we define the inner function that takes the parameters and concentrations as arguments
+    # This makes the parameters easier; we don't have to worry about order
+    parameter_vars = ', '.join(f'this_conc_{specie}' for specie in static_params)
+    parameter_vars = f'TEMP, CAIR, {parameter_vars}'
+    lines.append(f'def _rhs_inner(double t, {concentration_vars}, {parameter_vars}):')
+
     for d in derivatives:
         if d.changed_specie.name not in static_params:
-            lines.append(pyx_indent + 'cdef double dconc_{}_dt = '.format(d.changed_specie.name) +
-                    d.func_signature.replace('double', '').replace('conc', 'this_conc'))
+            function_call = d.func_signature.replace('double', '').replace('conc', 'this_conc')
+            lines.append(f'{pyx_indent}cdef double dconc_{d.changed_specie.name}_dt = {function_call}')
             dict_str.append('dconc_{0}_dt'.format(d.changed_specie.name))
 
-    lines.append(pyx_indent + 'return np.array([{0}])'.format(', '.join(dict_str)))
+    # This does have the species in the same order as the input only because in generate_chemderiv_file we add
+    # derivatives in the same order that the species are defined
+    derivatives_list = ', '.join(dict_str)
+    lines.append(f'{pyx_indent}return np.array([{derivatives_list}])')
     return lines
+
+
+def _generate_species_function():
+    species_names = "', '".join(s.name for s in Specie.instances)
+    return [
+        'def mech_species():',
+        f"{pyx_indent}return ('{species_names}')"
+    ]
+
 
 # Add styles and their respective parsing functions to this dictionary so that there
 # is a single object describing which parsing function to call for which style
