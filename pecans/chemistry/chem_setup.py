@@ -68,42 +68,55 @@ def get_initial_conditions(config: dict, specie: str) -> np.ndarray:
     :return: the array of initial concentrations
     """
     initial_cond = config['CHEMISTRY']['initial_cond']
-    if initial_cond == 'zero' or specie not in initial_cond.keys():
+    if initial_cond == 'zero':
+        domain_size = get_domain_size_from_config(config)
+        return np.zeros(domain_size)
+    elif not isinstance(initial_cond, list):
+        raise ConfigurationError('CHEMISTRY -> initial_cond must be either the string "zero" or a list of initial conditions')
+    
+    init_section = None
+    for sect in config['CHEMISTRY']['initial_cond']:
+        if sect['specie'] == specie and init_section is None:
+            init_section = sect
+        elif sect['specie'] == specie and init_section is not None:
+            raise ConfigurationError(f'The specie "{specie}" has at least two initial conditions defined - each specie may only have one initial condition')
+        
+    # Assume that any species not listed in the configuration have no initial conditions.
+    if init_section is None:
         domain_size = get_domain_size_from_config(config)
         return np.zeros(domain_size)
 
-    elif initial_cond[specie] == 'gaussian':
+    if init_section['initial_type'] == 'gaussian':
         x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(config, as_vectors=False)
         # Will always need the x values. Append y and z as needed for 2D or 3D models
-        gaussian_opts = config['CHEMISTRY']['initial_cond_opts']
         required_subopts = ['height', 'center_x', 'width_x']
         if domain_utilities.is_at_least_2D(config):
             required_subopts.extend(['center_y', 'width_y'])
         if domain_utilities.is_3D(config):
             required_subopts.extend(['center_z', 'width_z'])
 
-        list_missing_subopts(required_subopts, config, 'CHEMISTRY', 'initial_cond_opts', raise_error=True)
+        list_missing_subopts(required_subopts, init_section, f'The {specie} initial conditions subsection', raise_error=True)
 
         # Any options required here should be added to required_subopts before to verify that they are present and print
         # a useful error message if not
-        prefactor = gaussian_opts['height']
-        gaussian_kwargs = {'center_x': gaussian_opts['center_x'], 'sigma_x': gaussian_opts['width_x'], 'x': x_coord}
+        prefactor = init_section['height']
+        gaussian_kwargs = {'center_x': init_section['center_x'], 'sigma_x': init_section['width_x'], 'x': x_coord}
         if domain_utilities.is_at_least_2D(config):
-            gaussian_kwargs.update(center_y=gaussian_opts['center_y'], sigma_y=gaussian_opts['width_y'], y=y_coord)
+            gaussian_kwargs.update(center_y=init_section['center_y'], sigma_y=init_section['width_y'], y=y_coord)
         if domain_utilities.is_3D(config):
-            gaussian_kwargs.update(center_z=gaussian_opts['center_z'], sigma_z=gaussian_opts['width_z'], z=z_coord)
+            gaussian_kwargs.update(center_z=init_section['center_z'], sigma_z=init_section['width_z'], z=z_coord)
 
         return prefactor * general_utils.gaussian(normalized=False, **gaussian_kwargs)
-    elif initial_cond[specie] == 'point':
+    
+    elif init_section['initial_type'] == 'point':
         coords = domain_utilities.compute_coordinates_from_config(config)
 
-        point_opts = config['CHEMISTRY']['initial_cond_opts']
         if domain_utilities.is_1D(config):
-            centers = (point_opts['center_x'],)
+            centers = (init_section['center_x'],)
         elif domain_utilities.is_2D(config):
-            centers = (point_opts['center_x'], point_opts['center_y'])
+            centers = (init_section['center_x'], init_section['center_y'])
         elif domain_utilities.is_3D(config):
-            centers = (point_opts['center_x'], point_opts['center_y'],  point_opts['center_z'])
+            centers = (init_section['center_x'], init_section['center_y'], init_section['center_z'])
         else:
             raise ConfigurationError('Model is not 1D, 2D, or 3D!')
 
@@ -111,12 +124,13 @@ def get_initial_conditions(config: dict, specie: str) -> np.ndarray:
         # centers will be only 1, 2, or 3, indices will be the same length
         indices = tuple([np.argmax(np.abs(coord - center)) for coord, center in zip(coords, centers)])
         concentration = np.zeros(get_domain_size_from_config(config))
-        concentration[indices] = point_opts['{}_concentration'.format(specie)]
+        concentration[indices] = init_section['concentration']
         return concentration
-    elif initial_cond[specie] == 'flat':
+    
+    elif init_section['initial_type'] == 'flat':
         domain_size = get_domain_size_from_config(config)
-        point_opts = config['CHEMISTRY']['initial_cond_opts']
-        return np.zeros(domain_size) + point_opts['{}_concentration'.format(specie)]
+        return np.zeros(domain_size) + init_section['concentration']
+    
     else:
         raise NotImplementedError('No method implemented for initial_cond == "{}"'.format(initial_cond))
 

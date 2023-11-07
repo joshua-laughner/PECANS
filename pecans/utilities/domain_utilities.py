@@ -153,7 +153,7 @@ def get_domain_dimensionality(config_or_domain):
 
 
 def _get_domain_size(config_or_domain):
-    if isinstance(config_or_domain, BetterConfig):
+    if isinstance(config_or_domain, dict):
         return get_domain_size_from_config(config_or_domain, all_dims=True)
     else:
         # Assume it is a Domain - cannot import Domain because that creates a circular dependency

@@ -5,7 +5,7 @@ from typing import Callable, Tuple, Dict
 import numpy as np
 
 from pecans.utilities import general_utils, domain_utilities
-from pecans.utilities.config import ConfigurationError, get_domain_size_from_config, list_missing_subopts
+from pecans.utilities.config import ConfigurationError, get_domain_size_from_config
 import os
 
 _mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))

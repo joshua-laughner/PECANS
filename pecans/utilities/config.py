@@ -1,11 +1,5 @@
-from ast import literal_eval
-import configparser
-import copy
-import os
 import re
 import tomllib
-
-import pdb
 
 # Adapted from https://stackoverflow.com/a/26634150, this regex can be used to split on commas that are outside of
 # brackets, i.e. [ ], only. It looks to find a comma that is NOT FOLLOWED by any number of non-bracket characters then a
@@ -38,7 +32,7 @@ def load_config_file(config_file):
         return tomllib.load(f)
 
 
-def get_domain_size_from_config(config, all_dims=False):
+def get_domain_size_from_config(config: dict, all_dims=False):
     """
     Helper function that reads the domain size (as a tuple) from a configuration object.
 
@@ -91,15 +85,13 @@ def list_missing_opts(required_opts, config, section, raise_error=False):
         raise ConfigurationError(msg)
 
 
-def list_missing_subopts(required_subopts, config, section, option, raise_error=False):
-    subopt_dict = config[section][option]
+def list_missing_subopts(required_subopts, subopt_dict, option_description, raise_error=False):
     missing_opts = _opts_missing_from_dict(subopt_dict, required_subopts)
     if not raise_error:
         return missing_opts
     elif len(missing_opts) > 0:
-        msg = 'Option "{}" in section "{}" is missing the following sub-options: {}'.format(
-            option, section, ', '.join(missing_opts)
-        )
+        missing = ', '.join(missing_opts)
+        msg = f'{option_description} is missing the following sub-options: {missing}'
         raise ConfigurationError(msg)
 
 

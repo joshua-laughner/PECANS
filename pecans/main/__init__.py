@@ -92,7 +92,7 @@ class Domain(object):
         """
         if n_seconds_to_run is None:
             n_seconds_to_run = self._options['run_time']
-        # self.write_output(output_file_name='./inputs/pecans_skeleton_output.nc')
+        self.write_output()
         while self.seconds_since_model_start < n_seconds_to_run:
             self.step()
 
