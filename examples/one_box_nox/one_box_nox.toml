@@ -1,0 +1,48 @@
+
+[OUTPUT]
+# How frequently to save model output (in seconds). Does not need to be a multiple of the domain time step
+output_frequency = 3600
+
+[DOMAIN]
+# Number of boxes in each dimension. Setting a dimension to 0 will remove it, i.e. with nz = 0, the model is 2D and
+# vertical boundary conditions will be ignored
+nx = 1
+ny = 0
+nz = 0
+
+# Time step in seconds
+dt = 60
+# How long to run in seconds
+run_time = 40000
+
+# Size of the boxes in meters
+dx = 5000
+dy = 10000
+dz = 10000
+
+[TRANSPORT]
+do_transport = false
+scheme = "implicit2"
+wind_type = "fixed"
+
+# Specify the x, y, and z wind speeds in meters/second and diffusion coefficients in m^2/s if using wind_type = fixed
+wind_speeds = {x=6.3, y=0, z=0}
+diffusion_coeffs = {x=1e2, y=1e2, z=0}
+
+
+[CHEMISTRY]
+do_chemistry = true
+mechanism = "compiled"
+initial_cond = "zero"
+const_params = {TEMP = 298.0, CAIR = 2e19, HO = 1e6, O3 = 8e11}
+
+[EMISSIONS]
+do_emissions = true
+
+[[EMISSIONS.species]]
+emission_specie = "NO"
+emission_type = "point"
+center_x = 0.0
+center_y = 0.0
+center_z = 0.0
+total = 1e24
