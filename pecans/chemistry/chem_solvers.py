@@ -53,7 +53,7 @@ def init_explicit_nox_chem_solver(config: dict):
               'try rebuilding.', file=sys.stderr)
         raise
 
-    mech_species = mech_species()
+    mech_species_names = mech_species()
 
     # TODO: this and chem_setup.get_constant_params_and_species are inconsistent. Figure out how I'm going to do this,
     #  document it, and fix.
@@ -68,7 +68,7 @@ def init_explicit_nox_chem_solver(config: dict):
         raise ConfigurationError('Temperature (TEMP) and number density of air (CAIR) must be provided as constant or '
                                  'fixed parameters')
 
-    species_out = tuple([specie for specie in mech_species if specie not in const_and_forced_params])
+    species_out = tuple([specie for specie in mech_species_names if specie not in const_and_forced_params])
     print('Model will solve for concentrations of: {}'.format(', '.join(species_out)))
     print('The following species or parameters will be constant or fixed: {}'.format(', '.join(const_and_forced_params)))
 
@@ -76,16 +76,27 @@ def init_explicit_nox_chem_solver(config: dict):
         dt = float(dt)
         grid_shape, num_grid_cells = [(conc.shape, conc.size) for _, conc in species_in.items()][0]
 
+        # This might change in the future (because handling things this way is kind of messy), but we need to separate chemical
+        # species out of the const and forced parameter dictionaries. The way chemderiv works right now is it expects all of the
+        # concentrations to be in one input, and other parameters to be passed separately.
+        all_species_conc = species_in.copy()
+        all_species_conc.update({k: v for k, v in const_param.items() if k in mech_species_names})
+        all_species_conc.update({k: v for k, v in forced_param.items() if k in mech_species_names})
+
+        non_species_params = {k: v for k, v in const_param.items() if k not in mech_species_names}
+        non_species_params.update({k: v for k, v in forced_param.items() if k not in mech_species_names})
+
         for i in range(num_grid_cells):
             multi_idx = np.unravel_index(i, grid_shape)
-            this_param = {k: v[multi_idx] for k, v in const_param.items()}
-            this_param.update({k: v[multi_idx] for k, v in forced_param.items()})
-            this_conc = [species_in[name][multi_idx] for name in mech_species]
+            this_conc = [all_species_conc[name][multi_idx] for name in mech_species_names]
+            this_param = {k: v[multi_idx] for k, v in non_species_params.items()}
 
-            solution = solve_ivp(rhs, (0, dt), this_conc, t_eval=dt, args=(this_param,))
-            for ispec, specie in enumerate(mech_species):
-                # if this_species not in const_species.keys():
-                species_in[specie][ispec] = solution.y[ispec, -1]
+            solution = solve_ivp(rhs, (0, dt), this_conc, t_eval=np.asarray([dt]), args=(this_param,))
+            for ispec, specie in enumerate(mech_species_names):
+                # Now we have the reverse issue from before the loop - we only need to update the non-constant
+                # and non-forced species.
+                if specie in species_in:
+                    species_in[specie][i] = solution.y[ispec, -1]
         return species_in
 
-    return MechanismInterface(chem_solver=chem_solver, species=species_out, required_params=('temp', 'nair'))
+    return MechanismInterface(chem_solver=chem_solver, species=species_out, required_params=('TEMP', 'CAIR'))

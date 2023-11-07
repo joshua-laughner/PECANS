@@ -45,9 +45,9 @@ class IdealEmisTests(unittest.TestCase):
         """
 
         test_domain, test_config = _make_test_domain('simple_emissions_test.cfg')
-        emis_opts = test_config.get('EMISSIONS', 'emission_opts')
+        emis_opts = test_config['EMISSIONS']['emission_opts']
         emis_rate = emis_opts['total']
-        dt = test_config.get('DOMAIN', 'dt')
+        dt = test_config['DOMAIN']['dt']
         box_volume = _get_box_volume(test_config)
 
         test_specie = 'A'
@@ -84,7 +84,7 @@ class IdealEmisTests(unittest.TestCase):
             with self.subTest(dimensionality=dimensionality):
                 # we can get away with a shallow copy b/c we just need to change ny/nz, which are just integers
                 test_config = copy.copy(base_test_config)
-                expected_total_emis = test_config.get('EMISSIONS', 'emission_opts')['total']
+                expected_total_emis = test_config['EMISSIONS']['emission_opts']['total']
                 for dim in z_dims:
                     test_config.set('DOMAIN', 'n'+dim, 0)
                 test_domain = Domain(test_config)

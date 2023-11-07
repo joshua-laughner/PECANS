@@ -31,9 +31,6 @@ def setup_emissions(config: dict) -> EmissionsSolver:
     """
     _check_grid_box_size(config, 'dy')
     _check_grid_box_size(config, 'dz')
-    emis_species = config['EMISSIONS']['emission_species']
-    if type(emis_species) == str:
-        emis_species = (emis_species,)
 
     # Emissions can be set up globally, without reference to specific species, or with different emissions per specie.
     # These two modes are incompatible. The former looks like this in TOML:
@@ -191,7 +188,7 @@ def _setup_gaussian_emissions(config: dict, emis_config_subsection: dict):
         #
         # We also convert he E_x from molec m^-2 s^-1 to molec cm^-2 s^-1
         # We assume that the total is molec./second, and we want molec./area/second
-        dy = config.get('DOMAIN', 'dy')
+        dy = config['DOMAIN']['dy']
         emissions_array = total / dy * general_utils.gaussian(center_x, width_x, x=x, normalized=True)
         emissions_array = emissions_array / 1e4
 
@@ -229,8 +226,8 @@ def _setup_point_emissions(config, emis_config_subsection):
         expected "get emissions" functions
     :rtype: function
     """
-    dx = config.get('DOMAIN', 'dx')
-    dy = config.get('DOMAIN', 'dy')
+    dx = config['DOMAIN']['dx']
+    dy = config['DOMAIN']['dy']
 
     x, y, z = domain_utilities.compute_coordinates_from_config(config)
     idx_x = np.argmin(np.abs(x - emis_config_subsection['center_x']))
@@ -265,8 +262,8 @@ def _setup_constant_emissions(config, emis_config_subsection):
         expected "get emissions" functions
     :rtype: function
     """
-    dx = config.get('DOMAIN', 'dx')
-    dy = config.get('DOMAIN', 'dy')
+    dx = config['DOMAIN']['dx']
+    dy = config['DOMAIN']['dy']
 
     emis = np.zeros(get_domain_size_from_config(config)) + emis_config_subsection['total'] / (dx * dy) / 1e4
 

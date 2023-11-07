@@ -31,8 +31,8 @@ class IdealChemistryTests(unittest.TestCase):
     def test_first_order_chemistry(self):
         domain, config = _make_test_domain('simple_chemistry_test.cfg')
         initial_concentration = domain.species['A'].copy()
-        run_time = config.get('DOMAIN', 'run_time')
-        lifetime_seconds = config.get('CHEMISTRY', 'mechanism_opts')['lifetime_seconds']
+        run_time = config['DOMAIN']['run_time']
+        lifetime_seconds = config['CHEMISTRY']['mechanism_opts']['lifetime_seconds']
         domain.execute()
 
         expected_concentration = initial_concentration * np.exp(-run_time/lifetime_seconds)

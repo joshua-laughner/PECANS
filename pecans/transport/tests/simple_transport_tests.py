@@ -88,19 +88,19 @@ class IdealTransportTests(unittest.TestCase):
                     self.plot_2d(domain.species['A'], 'domain_gaussian_2d_transport_init.png')
 
                 # Get the wind speed, diffusion coefficient, and run time from the config
-                run_time = subtest_config.get('DOMAIN', 'run_time')
-                wind_dict = subtest_config.get('TRANSPORT', 'wind_speeds')
+                run_time = subtest_config['DOMAIN']['run_time']
+                wind_dict = subtest_config['TRANSPORT']['wind_speeds']
                 x_wind = wind_dict['x']
                 if wind_dict['y'] != 0.0 or wind_dict['z'] != 0.0:
                     raise RuntimeError('y and z winds should be 0')
 
-                diffusion_coeff_dict = subtest_config.get('TRANSPORT', 'diffusion_coeffs')
+                diffusion_coeff_dict = subtest_config['TRANSPORT']['diffusion_coeffs']
                 x_diff = diffusion_coeff_dict['x']
                 if diffusion_coeff_dict['y'] != 0.0 or diffusion_coeff_dict['z'] != 0.0:
                     raise RuntimeError('y and z diffusion coefficients should be 0')
 
                 # Calculate the ideal final distribution of the species
-                init_condition_opts = subtest_config.get('CHEMISTRY', 'initial_cond_opts')
+                init_condition_opts = subtest_config['CHEMISTRY']['initial_cond_opts']
                 mu = init_condition_opts['center_x']
                 sigma = init_condition_opts['width_x']
                 height = init_condition_opts['height']

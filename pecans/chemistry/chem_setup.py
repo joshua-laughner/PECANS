@@ -57,18 +57,15 @@ def setup_chemistry(config: dict) -> MechanismInterface:
     )
 
 
-def get_initial_conditions(config, specie):
+def get_initial_conditions(config: dict, specie: str) -> np.ndarray:
     """
     Get the initial conditions for a given chemical specie based on how the configuration specifies it
 
     :param config: the configuration object
-    :type config: :class:`~pecans.utilities.BetterConfig`
 
     :param specie: the name of the chemical specie to load
-    :type specie: str
 
     :return: the array of initial concentrations
-    :rtype: :class:`numpy.ndarray`
     """
     initial_cond = config['CHEMISTRY']['initial_cond']
     if initial_cond == 'zero' or specie not in initial_cond.keys():
@@ -100,7 +97,7 @@ def get_initial_conditions(config, specie):
     elif initial_cond[specie] == 'point':
         coords = domain_utilities.compute_coordinates_from_config(config)
 
-        point_opts = config.get('CHEMISTRY', 'initial_cond_opts')
+        point_opts = config['CHEMISTRY']['initial_cond_opts']
         if domain_utilities.is_1D(config):
             centers = (point_opts['center_x'],)
         elif domain_utilities.is_2D(config):
@@ -110,7 +107,7 @@ def get_initial_conditions(config, specie):
         else:
             raise ConfigurationError('Model is not 1D, 2D, or 3D!')
 
-        # zip is smart enough (at least in my testing) that it will stop at the end of the shortest list, so since
+        # zip will stop at the end of the shortest list, so since
         # centers will be only 1, 2, or 3, indices will be the same length
         indices = tuple([np.argmax(np.abs(coord - center)) for coord, center in zip(coords, centers)])
         concentration = np.zeros(get_domain_size_from_config(config))
