@@ -1,7 +1,0 @@
-PECANS Utilities
-================
-
-.. include:: ../includes/top_includes.rst
-
-.. automodule:: pecans.utilities.config
-   :members:
