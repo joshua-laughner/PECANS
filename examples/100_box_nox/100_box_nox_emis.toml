@@ -1,20 +1,20 @@
 
 [OUTPUT]
 # How frequently to save model output (in seconds). Does not need to be a multiple of the domain time step
-output_frequency = 10
+output_frequency = 3600
 output_path = './test_output'
 
 [DOMAIN]
 # Number of boxes in each dimension. Setting a dimension to 0 will remove it, i.e. with nz = 0, the model is 2D and
 # vertical boundary conditions will be ignored
-nx = 1
+nx = 100
 ny = 0
 nz = 0
 
 # Time step in seconds
-dt = 10
+dt = 60
 # How long to run in seconds
-run_time = 600
+run_time = 40000
 
 # Size of the boxes in meters
 dx = 5000
@@ -22,7 +22,7 @@ dy = 10000
 dz = 10000
 
 [TRANSPORT]
-do_transport = false
+do_transport = true
 scheme = "implicit2"
 wind_type = "fixed"
 
@@ -34,13 +34,17 @@ diffusion_coeffs = {x=1e2, y=1e2, z=0}
 [CHEMISTRY]
 do_chemistry = true
 mechanism = "compiled"
-const_params = {TEMP = 298.0, CAIR = 2e19, HO = 1e6, O3 = 8e11}
-
-[[CHEMISTRY.initial_cond]]
-specie = "NO"
-initial_type = "point"
-center_x = 0.0
-concentration = 2e10
+initial_cond = "zero"
+const_params = {TEMP = 298.0, CAIR = 2e19, HO = "file", O3 = "file"}
+const_param_input_file = "examples/100_box_nox/100_box_nox_const.nc" 
 
 [EMISSIONS]
-do_emissions = false
+do_emissions = true
+
+[[EMISSIONS.species]]
+emission_specie = "NO"
+emission_type = "point"
+center_x = 47500.0
+center_y = 0.0
+center_z = 0.0
+total = 1e24

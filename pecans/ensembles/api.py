@@ -25,22 +25,22 @@ class EnsembleRunner:
     :type base_config_file: str
 
     :param ensemble_variables: the configuration variables to modify for the different ensemble members. This must be
-        a dictionary where the keys are the options given as 'SECTION/OPTION' (e.g. 'DOMAIN/dx' to set the dx value)
-        or 'SECTION/OPTION/SUBOPTION', if the option contains a suboption (e.g. 'CHEMISTRY/mechanism_opts/lifetime_seconds'
+        a dictionary where the keys are the options given as ``'SECTION/OPTION'`` (e.g. ``'DOMAIN/dx'`` to set the dx value)
+        or ``'SECTION/OPTION/SUBOPTION'``, if the option contains a suboption (e.g. ``'CHEMISTRY/mechanism_opts/lifetime_seconds'``
         to set the lifetime for the ideal_first_order mechanism), and the values describe how to vary that option. The
         exact format that the values take on depends on the ensemble mode (see next parameter).
 
         ensemble_variables does not need to be specified during initialization of this class; additional variables can
-        be specified using the add_ens_var_by_string() or add_ens_var_by_option() methods, if that is more convenient.
+        be specified using the ``add_ens_var_by_string()`` or ``add_ens_var_by_option()`` methods, if that is more convenient.
     :type ensemble_variables: dict or None
 
     :param ensemble_mode: this determines how the ensemble_variables are varied. Possible options are:
 
-        * 'iterations' - each ensemble variable has its values specified in an iterable (i.e. list or numpy array); the
+        * ``'iterations'`` - each ensemble variable has its values specified in an iterable (i.e. list or numpy array); the
           nth ensemble member will use the nth value for each variable.
-        * 'combinations' - each ensemble variable has its possible values specified in an iterable, but unlike
-          'iterations', all possible combinations are tested. E.g. if your ensemble variables are
-          {'DOMAIN/dx': [1000, 4000, 9000], 'DOMAIN/dy': [2000, 5000, 8000]} then a total of 9 ensemble members will be
+        * ``'combinations'`` - each ensemble variable has its possible values specified in an iterable, but unlike
+          ``'iterations'``, all possible combinations are tested. E.g. if your ensemble variables are
+          ``{'DOMAIN/dx': [1000, 4000, 9000], 'DOMAIN/dy': [2000, 5000, 8000]}`` then a total of 9 ensemble members will be
           run, one with dx = 1000 & dy = 2000, one with dx = 1000 & dy = 5000, one with dx = 4000 & dy = 2000, etc.
 
     :type ensemble_mode: str
@@ -50,9 +50,9 @@ class EnsembleRunner:
 
     :param member_naming_fxn: a function that accepts two arguments (the ensemble member index as an integer and the
         member's options as keyword arguments) and returns a string that should be a unique name for that ensemble
-        member. The default will return "pecans_ens_member_N" where N is the ensemble member index. This name will be
-        used for the member's output directory name (if save_in_individual_dirs is True) and, with ".nc" appended, the
-        output file name if save_final_output_only is True).
+        member. The default will return ``"pecans_ens_member_N"`` where N is the ensemble member index. This name will be
+        used for the member's output directory name (if ``save_in_individual_dirs`` is ``True``) and, with ".nc" appended, the
+        output file name if ``save_final_output_only`` is True).
 
         You can use this to set the output names to something that incorporates the varied ensemble variables into the
         file/directory names. For example, if dx and dy are being varied, you could do::
@@ -68,15 +68,15 @@ class EnsembleRunner:
         This would put the dx and dy values (converted to kilometers) into the file or directory names.
     :type member_naming_fxn: callable
 
-    :param save_in_individual_dirs: optional, default is True. This creates separate directories for the output of each
+    :param save_in_individual_dirs: optional, default is ``True``. This creates separate directories for the output of each
         ensemble member, named using the member_naming_fxn. Each member's output is saved in the corresponding
         directory.
     :type save_in_individual_dirs: bool
 
-    :param save_final_output_only: optional, default is False, meaning that each ensemble member will save output at the
-        output frequency defined in their configuration. If True, only the final state of the model will be saved, and
-        it will be named by the member_naming_fxn plus the '.nc' extension. If this is False, save_in_individual_dirs
-        will automatically be set to True; save_in_individual_dirs is not already True, a warning is issued.
+    :param save_final_output_only: optional, default is ``False``, meaning that each ensemble member will save output at the
+        output frequency defined in their configuration. If ``True``, only the final state of the model will be saved, and
+        it will be named by the member_naming_fxn plus the '.nc' extension. If this is ``False``, save_in_individual_dirs
+        will automatically be set to ``True``; save_in_individual_dirs is not already ``True``, a warning is issued.
     :type save_final_output_only: bool
     """
     @property
@@ -136,8 +136,8 @@ class EnsembleRunner:
         """
         Add an option that should be varied among the different ensemble members.
 
-        :param ensemble_variable: The option to vary as a string, 'SECTION/OPTION' (e.g. 'DOMAIN/dx') or
-            'SECTION/OPTION/SUBOPTION' (e.g. 'CHEMISTRY/mechanism_opts/lifetime_seconds').
+        :param ensemble_variable: The option to vary as a string, ``'SECTION/OPTION'`` (e.g. ``'DOMAIN/dx'``) or
+            ``'SECTION/OPTION/SUBOPTION'`` (e.g. ``'CHEMISTRY/mechanism_opts/lifetime_seconds'``).
         :type ensemble_variable: str
 
         :param values: values describing how that option should be varied among the different ensemble members. The

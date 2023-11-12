@@ -11,6 +11,24 @@
             "program": "${workspaceFolder}/run_pecans.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        }
+        },
+        {
+            "name": "Build mech",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/build_pecans.py",
+            "args": ["nox_voc", "--params", "alpha=0.05"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Plot",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/plot_pecans.py",
+            "args": ["test", "test_output.pdf"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }

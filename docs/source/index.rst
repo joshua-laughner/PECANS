@@ -22,6 +22,7 @@ User guide
    :maxdepth: 3
    :glob:
 
+   using_pecans.rst
    config_user_guide.rst
    chemistry_user_docs/*
 
@@ -36,6 +37,7 @@ Code documentation
    main_doc.rst
    utilities_doc.rst
    chemistry_docs/*
+   ensemble_docs.rst
 
 
 Indices and tables

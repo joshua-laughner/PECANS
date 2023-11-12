@@ -1,6 +1,7 @@
 [OUTPUT]
 # How frequently to save model output (in seconds). Does not need to be a multiple of the domain
 output_frequency = 10
+output_path = './test_output'
 
 [DOMAIN]
 # Number of boxes in each dimension. Setting a dimension to 0 will remove it, i.e. with nz = 0, the model is 2D and

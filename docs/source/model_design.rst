@@ -23,19 +23,22 @@ important that this model adhere to certain practices to help make the code easi
    on global/module variables to carry mutable data is confusing and difficult to follow. Constant values used
    throughout a module can and should be defined as module variables, but these must not be changed.
 
-#. **No use of from, import \***: This makes it unclear where variables or functions came from, since there is no
-   explicit indication in this import statement.
+#. **No use of from x import \***: This makes it unclear where variables or functions came from, since there is no
+   explicit indication in this import statement. For instance, rather than ``from pandas import *`` either do
+   ``from pandas import DataFrame, Series`` or ``import pandas as pd``.
+
+#. **Keep the code general; specifics belong in the config**: When you're working on your own project, it's very easy
+   to code in changes to make the specific runs you want. But that makes it difficult for others to use the changes you
+   made. If you want to add a new ideal mechanism or a different way to specify emissions, great! However, these new options
+   should be configurable: if the ideal mechanism has a free parameter or the new emissions requires an input file, make those
+   options in the configuration file.
 
 Model configuration
 -------------------
 
-The specifics of the model are determined by the `pecans_config.cfg` file in the same directory as `run_pecans.py`. At
-the beginning of a model run, this is ingested and represented by a :class:`~pecans.utilities.config.BetterConfig`
-instance. This is derived from :class:`configparser.RawConfigParser`, and so behaves similarly in that options are
-organized into sections, but differently in that option values are automatically parsed into Python literals if possible,
-and only kept as a string if its type cannot be inferred. This instance will need to be passed to any functions that
-need it.
-
+The specifics of the model are determined by the ``pecans_config.toml`` file in the same directory as ``run_pecans.py``. At
+the beginning of a model run, this is ingested and represented by a :class:`dict` instance. As TOML files map well to Python
+data types, little additional parsing is required, and what is needed is done where those options are used in the code.
 
 Solver organization
 -------------------

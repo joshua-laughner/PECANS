@@ -115,7 +115,7 @@ class PerSpeciesEmissionsSolver(EmissionsSolver):
 
         for specie_name, emis_fxn in self._get_emissions_functions.items():
             if specie_name not in species_concentrations:
-                if not specie_name in self._warned_about_species:
+                if specie_name not in self._warned_about_species:
                     print(f'WARNING: emissions are defined for specie {specie_name} but that is not one of the species '
                           f'being simulated. You may want to double check your configuration. Note that fixed/forced '
                           f'species cannot have emissions.', file=sys.stderr)
@@ -148,7 +148,6 @@ def _setup_gaussian_emissions(config: dict, emis_config_subsection: dict):
 
         * center_x, width_x, total
         * center_y, width_y if > 1D
-        * center_z, width_z if > 2D
 
     :param config: the configuration object
     :type config: :class:`~pecans.utilities.BetterConfig`
@@ -265,7 +264,9 @@ def _setup_constant_emissions(config, emis_config_subsection):
     dx = config['DOMAIN']['dx']
     dy = config['DOMAIN']['dy']
 
-    emis = np.zeros(get_domain_size_from_config(config)) + emis_config_subsection['total'] / (dx * dy) / 1e4
+    emis = np.zeros(get_domain_size_from_config(config)) + emis_config_subsection['rate'] / (dx * dy) / 1e4
+    if emis_config_subsection.get('surface_only', True) and domain_utilities.is_3D(config):
+        emis[:, :, 1:] = 0
 
     def return_emis_array(specie, seconds_since_model_start):
         return emis

@@ -10,6 +10,10 @@ described in `requirements.txt` using `pip install -r requirements.txt` (called 
 directory of this repo, where `requirements.txt` is). I recommend installing in a virtual
 environment or Conda environment to avoid dependency conflicts with your base Python installation.
 
+PECANS is currently built for Python 3.11. If you do not have Python 3.11 yet, see the installation
+section of the [documentation](https://pecans.readthedocs.io/en/stable/) for suggestions on how to
+install it.
+
 PECANS can also be installed as a package by running `python setup.py install` or `python setup.py develop`
 in the top directory. This allows you to, for example, import PECANS into a Jupyter notebook.
 The difference between the `install` and `develop` commands is that the latter will link to 

@@ -89,7 +89,7 @@ def get_initial_conditions(config: dict, specie: str) -> np.ndarray:
     if init_section['initial_type'] == 'gaussian':
         x_coord, y_coord, z_coord = domain_utilities.compute_coordinates_from_config(config, as_vectors=False)
         # Will always need the x values. Append y and z as needed for 2D or 3D models
-        required_subopts = ['height', 'center_x', 'width_x']
+        required_subopts = ['max_concentration', 'center_x', 'width_x']
         if domain_utilities.is_at_least_2D(config):
             required_subopts.extend(['center_y', 'width_y'])
         if domain_utilities.is_3D(config):
@@ -99,7 +99,7 @@ def get_initial_conditions(config: dict, specie: str) -> np.ndarray:
 
         # Any options required here should be added to required_subopts before to verify that they are present and print
         # a useful error message if not
-        prefactor = init_section['height']
+        prefactor = init_section['max_concentration']
         gaussian_kwargs = {'center_x': init_section['center_x'], 'sigma_x': init_section['width_x'], 'x': x_coord}
         if domain_utilities.is_at_least_2D(config):
             gaussian_kwargs.update(center_y=init_section['center_y'], sigma_y=init_section['width_y'], y=y_coord)

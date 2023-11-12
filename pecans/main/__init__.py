@@ -7,6 +7,7 @@ from ..transport import transport_setup
 from ..utilities import domain_utilities, io_utils
 from ..utilities.config import get_domain_size_from_config
 
+from typing import Optional
 
 class Domain(object):
     """
@@ -43,10 +44,13 @@ class Domain(object):
     def species(self):
         return self._chemical_species
 
-    def __init__(self, config: dict, output_dir: str = '.'):
+    def __init__(self, config: dict, output_dir: Optional[str] = None):
         self._options = config['DOMAIN']
         self._config = config
-        self._output_dir = output_dir
+        if output_dir is not None:
+            self._output_dir = output_dir
+        else:
+            self._output_dir = config['OUTPUT'].get('output_path', '.')
 
         self._mechanism = chem_setup.setup_chemistry(config)
         self._chemical_species = self._setup_species(self._mechanism.species)

@@ -1,3 +1,6 @@
+.. _config_user_guide:
+
+
 PECANS Configuration Manual
 ===========================
 
@@ -16,8 +19,8 @@ https://toml.io/en/v1.0.0.
      3. inline dictionaries (note that TOML calls dictionaries "tables") use the syntax ``{ key1 = value1, key2 = value2, ...}``,
         whereas before we used ``key1: value1, key2: value2, ...``.
 
-   This only covers the difference in INI-style syntax vs. TOML-style syntax. For details about new or changed options,
-   see TODO: cross link to config migration guide.
+   This only covers the difference in INI-style syntax vs. TOML-style syntax. There were also significant changes to how the
+   :ref:`initial conditions <initial_cond_doc>` and :ref:`emissions <emission_doc>` are specified, so read those sections of the documentation carefully if you have old configuration files you need to update.
 
 Output
 ------
@@ -25,7 +28,7 @@ Output
 * ``output_frequency`` - how often (in seconds) model output should be written. This does not need to be a multiple of the
   time step, the model will write output if the time since the last output file is greater than this number. This does
   mean that if this is *not* a multiple of the time step that the spacing between files may be inconsistent
-
+* ``output_path`` - where to save the output files. If not given, defaults to the current directory.
 
 Domain
 ------
@@ -83,19 +86,21 @@ Chemistry
   mechanisms. Idealized options are:
 
     + **ideal_first_order** - all chemical species are removed with a characteristic lifetime
+    + **ideal_two_phases_first_order** - all chemical species are removed with a characteristic lifetime that changes at a selected point in the domain.
+    + **compiled** - chemistry uses the mechanism compiled by running ``build_pecans.py``.
 
 * ``mechanism_opts`` - additional options to be set for each mechanism, as a dictionary. For details, see
   :ref:`ideal_chem_mech`.
-* ``initial_cond`` - determines how the initial chemical concentrations are set. Options are:
-    + **gaussian** - sets the initial conditions for all species as a Gaussian with a given center, width, and height.
-      These values are set by the ``initial_cond_opts`` line.
-* ``initial_cond_opts`` - additional options required by whatever initial conditions are selected. See
-  :ref:`initial_cond_doc` for information on the specific options required for each initial condition.
-
+* ``initial_cond`` - determines how the initial chemical concentrations are set. See :ref:`initial_cond_doc` for details.
+* ``const_params`` - a dictionary specifying chemical species or other parameters that should not vary with time
+  in a compiled mechanism. See the :ref:`compiled_chem_mech` section for details.
+* ``const_param_input_file`` - a path to a netCDF file containing concentrations of chemical species or values of other
+  parameters that will be constant in time. See :ref:`compiled_chem_mech` for details.
 
 Emissions
 ---------
 
 * ``do_emissions`` - a boolean (``True`` or ``False``) that turns emissions on or off.
-* ``emission_type`` - determines how the emissions are distributed throughout the domain. Options are:
-    + **gaussian** - emissions are distributed in a 1D, 2D, or 3D Gaussian as appropriate.
+
+Other options in this section differ depending on whether you specify per-specie emissions or identical emissions for all 
+species. See :ref:`emission_doc` for details.
