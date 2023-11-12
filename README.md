@@ -11,7 +11,7 @@ directory of this repo, where `requirements.txt` is). I recommend installing in 
 environment or Conda environment to avoid dependency conflicts with your base Python installation.
 
 PECANS is currently built for Python 3.11. If you do not have Python 3.11 yet, see the installation
-section of the [documentation](https://pecans.readthedocs.io/en/stable/) for suggestions on how to
+section of the [documentation](https://pecans.readthedocs.io/en/latest/) for suggestions on how to
 install it.
 
 PECANS can also be installed as a package by running `python setup.py install` or `python setup.py develop`
@@ -22,7 +22,7 @@ changes will automatically be available to the package without needed to rerun t
 
 ## Documentation
 
-Full documentation is available at https://pecans.readthedocs.io/en/stable/.
+Full documentation is available at https://pecans.readthedocs.io/en/latest/.
 
 ## Citing 
 
