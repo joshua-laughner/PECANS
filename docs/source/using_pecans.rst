@@ -81,9 +81,13 @@ Install PECANS as a package (optional)
 
 While PECANS is primarily meant to be run from the command line, you may also want to be able to import parts of it into other Python
 programs or Jupyter notebooks. To allow that, activate the PECANS virtual environment (step four in :ref:`installing_dependencies`),
-then run the command ``pip install -e .`` from the root of the PECANS repo. This will install PECANS as an "editable" package into the
+then run the command ``python setup.py develop`` from the root of the PECANS repo. This will install PECANS as an "editable" package into the
 same virtual environment as its dependencies. Making it an "editable" package means that any changes to the code will take effect the
 next time you import PECANS into your projects, without needing to rerun this ``pip`` command.
+
+.. note::
+   You will probably get a warning about the setup.py install being deprecated. We're aware of this, but using the recommended approach
+   (``pip install -e .``) does not currently work with Cython, which is needed for the compiled mechanisms.
 
 .. note::
    To import PECANS into Python scripts or notebooks, the script/notebook must be run with the virtual environment. For scripts, that

@@ -34,8 +34,12 @@ diffusion_coeffs = {x = 1e2, y = 0, z = 0}
 do_chemistry = true
 mechanism = "ideal_first_order"
 mechanism_opts = {lifetime_seconds = 3600}
-initial_cond = "point"
-initial_cond_opts = {center_x = 500, concentration = 1}
+
+[[CHEMISTRY.initial_cond]]
+specie = "A"
+initial_type = "point"
+center_x = 500
+concentration = 1
 
 
 [EMISSIONS]

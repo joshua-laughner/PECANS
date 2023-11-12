@@ -7,14 +7,17 @@ import warnings
 from ..utilities.config import load_config_file
 from ..main import Domain
 
-import pdb
-
-# TODO:
-#   Document 'iterations' and 'combinations' options and the ensemble runner in general
+from typing import Optional, Sequence, Any
 
 
 def _make_member_name(member_index, **config_opts):
     return 'pecans_ens_member_{:06}'.format(member_index)
+
+
+class EnsembleError(Exception):
+    """Error type used for problems in setting up an ensemble run
+    """
+    pass
 
 
 class EnsembleRunner:
@@ -22,37 +25,41 @@ class EnsembleRunner:
     Manager class to help run an ensemble of PECANS instances.
 
     :param base_config_file: the path to the configuration file to use as a starting point for the ensemble.
-    :type base_config_file: str
+
+        .. note::
+           The ``output_path`` argument in the configuration is ignored; the output path is set by the 
+           ``root_output_dir``,  ``member_naming_fxn``, and ``save_in_individual_dirs`` options of this
+           class.
 
     :param ensemble_variables: the configuration variables to modify for the different ensemble members. This must be
-        a dictionary where the keys are the options given as ``'SECTION/OPTION'`` (e.g. ``'DOMAIN/dx'`` to set the dx value)
-        or ``'SECTION/OPTION/SUBOPTION'``, if the option contains a suboption (e.g. ``'CHEMISTRY/mechanism_opts/lifetime_seconds'``
-        to set the lifetime for the ideal_first_order mechanism), and the values describe how to vary that option. The
-        exact format that the values take on depends on the ensemble mode (see next parameter).
+        a dictionary where the keys are the options given as strings and the values are lists of the values that each
+        ensemble member will have (see the :ref:`tutorial <ensemble_tutorial>` for details). The keys will have the 
+        form ``"key1/key2/key3"`` and map to the configuration as ``config[key1][key2][key3]``. For list configuration 
+        elements, give the index as part of the key (e.g. ``"CHEMISTRY/initial_cond/0/concentration"``) and it will 
+        be automatically converted to an integer if needed.
 
-        ensemble_variables does not need to be specified during initialization of this class; additional variables can
-        be specified using the ``add_ens_var_by_string()`` or ``add_ens_var_by_option()`` methods, if that is more convenient.
-    :type ensemble_variables: dict or None
+        Alternatively, you can construct the ensemble runner without this argument and add values later using the
+        :meth:`~pecans.ensembles.api.EnsembleRunner.add_ens_var_by_string` method.
 
     :param ensemble_mode: this determines how the ensemble_variables are varied. Possible options are:
 
         * ``'iterations'`` - each ensemble variable has its values specified in an iterable (i.e. list or numpy array); the
           nth ensemble member will use the nth value for each variable.
         * ``'combinations'`` - each ensemble variable has its possible values specified in an iterable, but unlike
-          ``'iterations'``, all possible combinations are tested. E.g. if your ensemble variables are
-          ``{'DOMAIN/dx': [1000, 4000, 9000], 'DOMAIN/dy': [2000, 5000, 8000]}`` then a total of 9 ensemble members will be
-          run, one with dx = 1000 & dy = 2000, one with dx = 1000 & dy = 5000, one with dx = 4000 & dy = 2000, etc.
+          ``'iterations'``, all possible combinations are tested. 
+        
+        If running in ``'iterations'`` mode, then the length of the value lists in ``ensemble_variables`` must all be
+        equal.
 
-    :type ensemble_mode: str
+        See the :ref:`tutorial <ensemble_tutorial>` for detailed examples.
 
     :param root_output_dir: the root directory to place the ensemble output in. Default is the current directory.
-    :type root_output_dir: str
 
-    :param member_naming_fxn: a function that accepts two arguments (the ensemble member index as an integer and the
-        member's options as keyword arguments) and returns a string that should be a unique name for that ensemble
-        member. The default will return ``"pecans_ens_member_N"`` where N is the ensemble member index. This name will be
-        used for the member's output directory name (if ``save_in_individual_dirs`` is ``True``) and, with ".nc" appended, the
-        output file name if ``save_final_output_only`` is True).
+    :param member_naming_fxn: a function that accepts the ensemble member index as an integer and the member's options 
+        as keyword arguments and returns a string that should be a unique name for that ensemble member. The default will 
+        return ``"pecans_ens_member_N"`` where N is the ensemble member index. This name will be used for the member's output
+        directory name (if ``save_in_individual_dirs`` is ``True``) and, with ".nc" appended, the output file name if 
+        ``save_final_output_only`` is True).
 
         You can use this to set the output names to something that incorporates the varied ensemble variables into the
         file/directory names. For example, if dx and dy are being varied, you could do::
@@ -66,18 +73,14 @@ class EnsembleRunner:
             ensemble = EnsembleRunner( ... , member_naming_fxn=custom_name)
 
         This would put the dx and dy values (converted to kilometers) into the file or directory names.
-    :type member_naming_fxn: callable
 
     :param save_in_individual_dirs: optional, default is ``True``. This creates separate directories for the output of each
-        ensemble member, named using the member_naming_fxn. Each member's output is saved in the corresponding
-        directory.
-    :type save_in_individual_dirs: bool
+        ensemble member, named using the member_naming_fxn. Each member's output is saved in the corresponding directory.
 
     :param save_final_output_only: optional, default is ``False``, meaning that each ensemble member will save output at the
         output frequency defined in their configuration. If ``True``, only the final state of the model will be saved, and
         it will be named by the member_naming_fxn plus the '.nc' extension. If this is ``False``, save_in_individual_dirs
         will automatically be set to ``True``; save_in_individual_dirs is not already ``True``, a warning is issued.
-    :type save_final_output_only: bool
     """
     @property
     def base_config(self):
@@ -87,9 +90,9 @@ class EnsembleRunner:
     def ensemble_mode(self):
         return self._mode
 
-    def __init__(self, base_config_file, ensemble_variables=None, ensemble_mode='iterations',
-                 save_in_individual_dirs=True, save_final_output_only=False, member_naming_fxn=_make_member_name,
-                 root_output_dir='.'):
+    def __init__(self, base_config_file: str, ensemble_variables: Optional[dict] = None, ensemble_mode: str = 'iterations',
+                 save_in_individual_dirs: bool =True, save_final_output_only: bool =False, member_naming_fxn=_make_member_name,
+                 root_output_dir: Optional[str] = '.'):
 
         config = load_config_file(base_config_file)
         self._base_config = config
@@ -132,13 +135,12 @@ class EnsembleRunner:
         else:
             raise NotImplementedError('No run function implemented for ensemble_mode={}'.format(ensemble_mode))
 
-    def add_ens_var_by_string(self, ensemble_variable, values):
+    def add_ens_var_by_string(self, ensemble_variable: str, values: Sequence[Any]):
         """
         Add an option that should be varied among the different ensemble members.
 
-        :param ensemble_variable: The option to vary as a string, ``'SECTION/OPTION'`` (e.g. ``'DOMAIN/dx'``) or
-            ``'SECTION/OPTION/SUBOPTION'`` (e.g. ``'CHEMISTRY/mechanism_opts/lifetime_seconds'``).
-        :type ensemble_variable: str
+        :param ensemble_variable: The option to vary as a string, must follow the same format as the keys for the
+            ``ensemble_variables`` argument of the class constructor.
 
         :param values: values describing how that option should be varied among the different ensemble members. The
             required form varies depending on the ensemble_mode option set during initialization. See the class
@@ -149,37 +151,6 @@ class EnsembleRunner:
 
         self._validate_ensemble_variable_string(self.base_config, ensemble_variable)
         self._ensemble_variables[ensemble_variable] = values
-
-    def add_ens_var_by_option(self, section, option, values_or_subopt, subopt_values=None):
-        """
-        An alternate method to add an option that should be varied among the different ensemble members.
-
-        This method will be called with three or four arguments, depending on if there is a suboption that needs to be
-        specified. If not::
-
-            add_ens_var_by_option( section, option, values)
-
-        If so::
-
-            add_ens_var_by_option( section, option, suboption, values )
-
-        This is just a convenience form of add_ens_var_by_string that allows you to specify the section, option, and
-        suboption separately instead of combining them into a string.
-
-        :return: none
-        """
-        # Allow for the two or three argument forms (section, option, values) and (section, option, suboption, values)
-        if subopt_values is None:
-            values = values_or_subopt
-            suboption = None
-        else:
-            values = subopt_values
-            suboption = values_or_subopt
-
-        opt_string = '{}/{}'.format(section, option)
-        if suboption is not None:
-            opt_string += '/{}'.format(suboption)
-        self.add_ens_var_by_string(opt_string, values)
 
     def run(self):
         """
@@ -232,7 +203,8 @@ class EnsembleRunner:
         if self._final_output_only:
             member_domain.write_output(os.path.join(self._root_output_dir, member_out_name + '.nc'))
 
-    def _modify_member_config(self, config, config_opts):
+    @classmethod
+    def _modify_member_config(cls, config, config_opts):
         """
         Internal helper method that handles modifying certain options in a given configuration.
 
@@ -245,16 +217,49 @@ class EnsembleRunner:
 
         :return: none
         """
+
         for opt, val in config_opts.items():
+            # First we need to recursively descend through the configuration to find the element to modify
+            # Since the configuration is a TOML file, all the intermediate levels should be dicts or lists,
+            # so we can interpret our index based on the element type.
+            curr_config_element = config
+            curr_config_path = []
+
             opt_parts = opt.split('/')
-            if len(opt_parts) == 2:
-                section, option = opt_parts
-                config[section][option] = val
-            elif len(opt_parts) == 3:
-                section, option, suboption = opt_parts
-                config[section][option][suboption] = val
-            else:
-                raise NotImplementedError('Cannot handle config option "{}": expected 2 or 3 parts separated by slashes'.format(opt))
+            for ipart, part in enumerate(opt_parts):
+                if isinstance(curr_config_element, dict):
+                    idx = part
+                elif isinstance(curr_config_element, list):
+                    try:
+                        idx = int(part)
+                    except ValueError:
+                        path = '/'.join(curr_config_path)
+                        raise EnsembleError(f'Configuration element {path} is a list, so the next part of the path must be an integer, but got {part}')
+                else:
+                    path = '/'.join(curr_config_path)
+                    raise EnsembleError(f'{path} is not a dictionary, list, or tuple in the configuration (it is a {type(curr_config_element)}), so it cannot be indexed by {part}')
+
+                # Don't actually do the last indexing because we need to modify the value in its parent element
+                if ipart < len(opt_parts) - 1:
+                    try:
+                        curr_config_element = curr_config_element[idx]
+                    except (IndexError, KeyError) as e:
+                        path = '/'.join(curr_config_path)
+                        raise EnsembleError(f'{idx} is not a valid index for {path}: {e}')
+                elif isinstance(curr_config_element, dict) and idx not in curr_config_element:
+                    # Test that the key exists for dictionaries so that we're not accidentally creating a new key
+                    path = '/'.join(curr_config_path)
+                    raise EnsembleError(f'Cannot set value of {part} in {path}, "{part}" is not a key in that section')
+                else:
+                    # Last part of the path, so we set the value
+                    try:
+                        curr_config_element[idx] = val
+                    except IndexError:
+                        # Easier to handle list index checks here
+                        raise EnsembleError(f'Cannot set value of index {idx} in {path}, {idx} is not a valid index of that list')
+                curr_config_path.append(part)
+                        
+        
 
     def _run_ensemble(self, config_opts):
         """
@@ -349,20 +354,11 @@ class EnsembleRunner:
         """
         if not isinstance(ensemble_var, str):
             raise TypeError('_validate_ensemble_variable_string expects the ensemble variable as a string')
-        elif ensemble_var.count('/') < 1:
-            raise ValueError('An ensemble variable specified as a string must contain at least the section and option'
-                             ' to modified separated by a slash, e.g. DOMAIN/nx.')
-        else:
-            key_elements = ensemble_var.split('/')
-            if len(key_elements) == 2:
-                section, option = key_elements[0:2]
-                cls._validate_ensemble_variable(config, section, option, original_key=ensemble_var)
-            elif len(key_elements) == 3:
-                section, option, suboption = key_elements
-                cls._validate_ensemble_variable(config, section, option, suboption, original_key=ensemble_var)
-            else:
-                raise ValueError('An ensemble variable specified as a string may have at most a section, option, '
-                                 'and suboption (this error is raised if > 2 slashes exist in the string')
+        
+        # To validate we'll just test if we can modify the configuration - that method has the error checking built in
+        config = copy.deepcopy(config)
+        cls._modify_member_config(config, {ensemble_var: None})
+        
 
     @staticmethod
     def _validate_ensemble_variable(config, section, option, suboption=None, original_key=None):

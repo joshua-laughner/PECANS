@@ -7,8 +7,6 @@ import sys
 
 from pecans import mechgen
 
-#TODO: add a check that I'm running in a virtual environment?
-
 _mydir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
 mech_dir = os.path.join(_mydir, 'pecans', 'Mechanisms')
 

@@ -30,5 +30,14 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
+        {
+            "name": "Ensembles",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/.vscode/test_ensemble.py",
+            "args": ["ideal_combinations"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
     ]
 }
