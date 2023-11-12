@@ -758,10 +758,10 @@ def _read_rate_def_files(additional_file):
                 line_num += 1
                 if re.search('def.+:', line) is not None:
                     reading_rate = True
+                    def_line_num = line_num
                     if len(curr_rate_expr) > 0:
                         RateExpression(''.join(curr_rate_expr), rfile, def_line_num)
                     curr_rate_expr = [line]
-                    def_line_num = line_num
                 elif reading_rate and len(line.strip()) > 0:
                     curr_rate_expr.append(line)
             # Add the last rate expression in the file

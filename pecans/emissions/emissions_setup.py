@@ -170,7 +170,7 @@ def _setup_gaussian_emissions(config: dict, emis_config_subsection: dict):
     else:
         use_2d_emis = False
 
-    center_x = emis_config_subsection['total']
+    center_x = emis_config_subsection['center_x']
     width_x = emis_config_subsection['width_x']
     total = emis_config_subsection['total']
 

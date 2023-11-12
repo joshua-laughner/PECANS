@@ -551,7 +551,7 @@ def _get_relative_linear_index(curr_lin_idx, dims, di=0, dj=0, dk=0):
         raise TypeError('dk must be a int')
 
     dims = np.array(dims)
-    if dims.dtype != np.int:
+    if not np.issubdtype(dims.dtype, np.integer):
         raise TypeError('dims must be a sequence of ints')
     elif dims.ndim != 1:
         raise TypeError('dims must be a 1D sequence')
@@ -563,7 +563,7 @@ def _get_relative_linear_index(curr_lin_idx, dims, di=0, dj=0, dk=0):
 
     # Convert the linear index for the current grid cell to multi-index notation, then add [di, dj, dk] to it to find
     # the new request point. Then reconvert back to linear index.
-    curr_idx = np.array(np.unravel_index(curr_lin_idx, dims=dims, order='F'))
+    curr_idx = np.array(np.unravel_index(curr_lin_idx, shape=dims, order='F'))
     dijk = [di, dj, dk]
     dijk = np.array(dijk[:dims.size])  # make dijk the same length as curr_idx
     return np.ravel_multi_index(curr_idx + dijk, dims=dims, order='F')

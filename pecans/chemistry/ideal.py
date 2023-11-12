@@ -53,7 +53,7 @@ def init_explicit_first_order_chem_solver(config: dict) -> MechanismInterface:
     else:
         species = (species_name,)
 
-    # TODO: unify setup and solver with the new interface for the compiled solvers
+    # TODO: unify setup and solver with the new interface for the compiled solvers (this might be done, just need to test this mechanism)
     def chem_solver(dt, _const_params: dict, _forced_params: dict, species_in: dict):
         dt = float(dt)
         for specie, conc in species_in.items():
@@ -101,10 +101,10 @@ def init_explicit_two_phases_first_order_chem_solver(config: dict):
 
     # This mechanism is unusual in that it requires an emission center to know where to start the second lifetime
     try:
-        emissions_center_x = config['EMISSIONS']['emission_opts']['center_x']
+        emissions_center_x = config['EMISSIONS']['center_x']
     except KeyError:
         raise ConfigurationError('Running the ideal two-stage mechanism requires an emissions center to be defined, '
-                                 'even if emissions are turned off (missing key EMISSIONS -> emission_opts -> '
+                                 'even if emissions are turned off (missing key EMISSIONS -> '
                                  'center_x)')
 
     # Then it also needs the x-coordinates so that it can determine whether each grid cell is in the first or second

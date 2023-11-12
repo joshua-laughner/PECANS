@@ -55,8 +55,6 @@ def init_explicit_nox_chem_solver(config: dict):
 
     mech_species_names = mech_species()
 
-    # TODO: this and chem_setup.get_constant_params_and_species are inconsistent. Figure out how I'm going to do this,
-    #  document it, and fix.
     # Make sure that the driver knows not to update the constant and forced species/parameters
     const_and_forced_params = []
     if 'const_params' in config['CHEMISTRY']:

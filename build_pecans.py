@@ -75,7 +75,8 @@ def _quit(exit_code=0):
 def _get_args():
     parser = argparse.ArgumentParser(description='Build one of the chemical mechanisms for the PECANS model',
                                      epilog='If no mechanism name is provided, a user interactive prompt is given.')
-    parser.add_argument('--style', '-s', default='pecans', help='What style the mechanism is. Default is "pecans"')
+    # JLL: only "pecans" style is implemented right now
+    # parser.add_argument('--style', '-s', default='pecans', help='What style the mechanism is. Default is "pecans"')
     parser.add_argument('mechanism', nargs='?', help='The name of the mechanism to use. Must be the base name of and'
                                                      ' .eqn and .spc file in {}'.format(mech_dir))
     parser.add_argument('--params', '-p', metavar="KEY=VALUE", nargs='+', help='Addtional params, the format is a=b.')
