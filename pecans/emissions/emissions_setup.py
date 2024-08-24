@@ -1,10 +1,15 @@
 import numpy as np
+import pandas as pd
 
 from pecans.utilities import general_utils, domain_utilities
 from pecans.utilities.config import ConfigurationError, get_domain_size_from_config, list_missing_subopts
 
 import pdb
 
+# Load the default diurnal FRP profile (MW), interpolate to 1 second intervals, and transform to a fractional FRP profile
+frp_diurnal = pd.read_csv('FIREXAQ-Fuel2Fire-GOESDiurnalCycle_Analysis_20190816_R1_Sheridan.csv')
+yinterp_cor = np.interp(np.linspace(0, 24, 86400), frp_diurnal['Local_Time_of_Day'], frp_diurnal['PseudoRaw_FRP_MW'])
+yinterp_cor = yinterp_cor/np.sum(yinterp_cor)
 
 def setup_emissions(config):
     """
@@ -108,7 +113,8 @@ def _setup_gaussian_emissions(config):
             emissions_array[:, :, 1:] = 0
 
     def return_gaussian_vector(specie, seconds_since_model_start):
-        return emissions_array
+        # We are only interested in hours 14 through 18
+        return emissions_array * yinterp_cor[14*3600:18*3600][seconds_since_model_start]
 
     return return_gaussian_vector
 

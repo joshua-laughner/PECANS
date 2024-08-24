@@ -16,6 +16,10 @@ The difference between the `install` and `develop` commands is that the latter w
 the copy of the repo downloaded, so that if you pull updates or otherwise change the code, those
 changes will automatically be available to the package without needed to rerun the setup command.
 
+> [!NOTE]
+> To run this version (used by Fredrickson et al. 2024) you must be in the directory containing the
+> FIREX `.csv` file when you run PECANS.
+
 ## Documentation
 
 Full documentation is available at https://pecans.readthedocs.io/en/stable/.
