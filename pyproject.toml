@@ -10,3 +10,14 @@ dependencies = [
     "scipy>=1.15.1",
     "xarray>=2025.1.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = [
+    "--import-mode=importlib",
+]
