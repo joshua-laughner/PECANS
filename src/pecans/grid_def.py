@@ -12,9 +12,10 @@ works as expected with the new grid.
 from abc import ABC, abstractmethod
 import numpy as np
 
+
 class GridDef(ABC):
     """The base class for grid definitions.
-    
+
     Any new grid definitions must implement the methods given here.
     """
     @abstractmethod
@@ -28,7 +29,7 @@ class GridDef(ABC):
         pass
 
     @abstractmethod
-    def cell_edge_lengths(self) -> list[np.ndarray[float]]:
+    def cell_edge_lengths(self) -> list[np.ndarray[tuple[int], np.dtype[np.float64]]]:
         """The lengths of each grid cell edge, in meters.
 
         The return value will be a list with one array per dimension;
@@ -50,7 +51,7 @@ class GridDef(ABC):
         pass
 
     @abstractmethod
-    def cell_areas(self) -> np.ndarray[float]:
+    def cell_areas(self) -> np.ndarray[tuple[int, ...], np.dtype[np.float64]]:
         """The areas of the bottom surface of the cells, in square meters.
 
         This must return an array with a shape matching one vertical layer of the model.
@@ -100,8 +101,7 @@ class RegularRectGrid(GridDef):
         self.dy = dy
         self.dz = dz
 
-
-    def grid_dims(self):
+    def grid_dims(self) -> list[int]:
         if self.ny == 0:
             return [self.nx]
         elif self.nz == 0:
@@ -109,14 +109,14 @@ class RegularRectGrid(GridDef):
         else:
             return [self.nx, self.ny, self.nz]
     
-    def cell_edge_lengths(self):
+    def cell_edge_lengths(self) -> list[np.ndarray[tuple[int], np.dtype[np.float64]]]:
         return [
             np.full(self.nx, self.dx),
             np.full(self.ny, self.dy),
             np.full(self.nz, self.dz),
         ]
     
-    def cell_areas(self):
+    def cell_areas(self) -> np.ndarray[tuple[int, ...], np.dtype[np.float64]]:
         a = self.dx * self.dy
         if self.ny == 0:
             return np.full(self.nx, a)
@@ -145,7 +145,13 @@ class VariableRectGrid(GridDef):
     use the ``n_dimensions`` argument. A value of ``1`` will ensure the model is 1D, a value of ``2`` will ensure the
     model is 2D. If the lengths of ``dx``, ``dy``, or ``dz`` are incompatible with that, a ``ValueError`` will be raised.
     """
-    def __init__(self, dx: np.ndarray[float], dy: np.ndarray[float], dz: np.ndarray[float], n_dimensions: int | None = None):
+    def __init__(
+            self,
+            dx: np.ndarray[tuple[int], np.dtype[np.float64]],
+            dy: np.ndarray[tuple[int], np.dtype[np.float64]],
+            dz: np.ndarray[tuple[int], np.dtype[np.float64]],
+            n_dimensions: int | None = None
+        ) -> None:
         arr_check = {'dx': np.ndim(dx), 'dy': np.ndim(dy), 'dz': np.ndim(dz)}
         bad_arrs = ', '.join(f'{k} is {v}D' for k, v in arr_check.items() if v != 1)
         if bad_arrs:
@@ -195,7 +201,7 @@ class VariableRectGrid(GridDef):
         self.dy = dy
         self.dz = dz
 
-    def grid_dims(self):
+    def grid_dims(self) -> list[int]:
         if self.ny == 0:
             return [self.nx]
         elif self.nz == 0:
@@ -203,10 +209,10 @@ class VariableRectGrid(GridDef):
         else:
             return [self.nx, self.ny, self.nz]
     
-    def cell_edge_lengths(self):
+    def cell_edge_lengths(self) -> list[np.ndarray[tuple[int], np.dtype[np.float64]]]:
         return [self.dx, self.dy, self.dz]
     
-    def cell_areas(self):
+    def cell_areas(self) -> np.ndarray[tuple[int, ...], np.dtype[np.float64]]:
         dx = self.dx.reshape(-1,1)
         dy = self.dy.reshape(1,-1)
         # Use squeeze to ensure that the 1D case does not return a 2D array
