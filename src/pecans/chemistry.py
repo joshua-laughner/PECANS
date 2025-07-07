@@ -6,6 +6,8 @@ from .ambient import AmbientConditions
 
 RateFxn: TypeAlias = Callable[[AmbientConditions], float]
 
+# TODO: to make these functions broadcast concentrations
+
 class Mechanism:
     """A representation of a chemical mechanism in memory
 
@@ -48,7 +50,44 @@ class Mechanism:
         # it must calculate the rate constants at least the first time ``compute_rates`` is called.
         self.update_rate_constants = True
 
-    def compute_rates(self, concentrations: np.ndarray, ambient_conditions: AmbientConditions, ambient_updated: bool) -> np.ndarray:
+    def compute_rates(self, concentrations: np.ndarray, ambient_conditions: AmbientConditions, ambient_updated: bool, squeeze: bool = True) -> np.ndarray:
+        """Compute the rates of all reactions for all grid cells.
+
+        The rates will give how many times that reaction occurs per unit time.
+
+        Parameters
+        ----------
+        concentrations
+            The array of concentrations for all species for all grid cells. It must have the different species
+            as the final dimension. That is, for a 1D model with 10 grid cells and 4 species, this must be 10-by-4.
+            For a 2D model with nx = 10 and ny = 5 (and 4 species again), this would be 10-by-5-by-4.
+
+        ambient_conditions
+            An instance of a class that provides the necessary ambient conditions (temperature, pressure, etc.) needed
+            to calculate the rate constants. Note that standard kinetic rate constants typically need temperature and
+            pressure, but photolysis rates may be parameterized a variety of ways. Thus, it is important that this
+            type provide all of the conditions required by the rate functions passed in when the Mechanism instance
+            was created.
+
+        ambient_updated
+            Set this to ``True`` if the ambient conditions have changed since the last time step, requiring the
+            rate constants to be recalculated. If ``False``, the rate constants will not be recalculated. If your
+            ambient conditions do change, the safest approach is to always pass ``True`` and accept the performance
+            hit.
+
+        squeeze
+            If ``True`` (default), the returned array will have the same number of dimensions as ``concentrations``,
+            but with the last dimension now equal in length to the number of reactions, rather than species. Setting
+            this to ``False`` keeps an extra length-1 dimension on the end of the array that is a result of the
+            way the matrix multiplication is handled internally. Most use outside of the PECANS internals should
+            leave this as ``True``.
+
+        Returns
+        -------
+        rates
+            An array with the rates for all of the reactions in each grid cell. See ``squeeze`` for information about
+            the shape.
+        """
         # If the ambient conditions have changed or something else in the model invalidated the
         # rate constants, we must recalculated them. Usually self.update_rate_constants is only
         # true when the mechanism was just initialized and has not had this method called yet.
@@ -58,16 +97,59 @@ class Mechanism:
                 self.ln_rate_constants[i] = np.log(k)
             self.update_rate_constants = False
 
-        # The concentrations must be a column vector so that the dot product with the
-        # rate coefficient array returns a column vector with n_reaction elements
-        ln_concentration = np.log(concentrations.reshape(-1, 1))
+        # The rules for broadcasting matrix multiplication is that the matrices to multiply
+        # must be in the last two dimensions. So if concentrations was nx-by-nspecies, we
+        # need to make it nx-by-nspecies-by-1 so that the multiplication broadcasts over the
+        # nx grid cells.
+        ln_concentration = np.log(concentrations[..., np.newaxis])
         ln_rates = self.ln_rate_constants + self.rate_coefficient_array @ ln_concentration
-        return np.exp(ln_rates)
-    
+
+        # ln_rates will have an extra singleton dimension at the end
+        if squeeze:
+            return np.exp(ln_rates.squeeze())
+        else:
+            return np.exp(ln_rates)
+
     def compute_concentration_change(self, concentrations: np.ndarray, ambient_conditions: AmbientConditions, ambient_updated: bool) -> np.ndarray:
-        rates = self.compute_rates(concentrations=concentrations, ambient_conditions=ambient_conditions, ambient_updated=ambient_updated)
-        # The rates must be a row vector so that the dot product with the n_reaction by n_specie coefficient array
-        # produces a vector with n_specie elements, which we then make sure only has 1 dimension to simplify the return value.
-        rates = rates.reshape(1, -1)
+        """Compute the change in concentrations of each specie in each grid cell.
+        
+        Parameters
+        ----------
+        concentrations
+            The array of concentrations for all species for all grid cells. It must have the different species
+            as the final dimension. That is, for a 1D model with 10 grid cells and 4 species, this must be 10-by-4.
+            For a 2D model with nx = 10 and ny = 5 (and 4 species again), this would be 10-by-5-by-4.
+
+        ambient_conditions
+            An instance of a class that provides the necessary ambient conditions (temperature, pressure, etc.) needed
+            to calculate the rate constants. Note that standard kinetic rate constants typically need temperature and
+            pressure, but photolysis rates may be parameterized a variety of ways. Thus, it is important that this
+            type provide all of the conditions required by the rate functions passed in when the Mechanism instance
+            was created.
+
+        ambient_updated
+            Set this to ``True`` if the ambient conditions have changed since the last time step, requiring the
+            rate constants to be recalculated. If ``False``, the rate constants will not be recalculated. If your
+            ambient conditions do change, the safest approach is to always pass ``True`` and accept the performance
+            hit.
+
+        Returns
+        -------
+        delta_conc
+            The changes in concentrations, the same shape as ``concentrations``.
+        """
+        rates = self.compute_rates(concentrations=concentrations, ambient_conditions=ambient_conditions, ambient_updated=ambient_updated, squeeze=False)
+
+        # If concentrations was nx-by-nspecies, then rates will now be nx-by-nreactions-by-1. We need to transpose the last two dimensions so that
+        # we properly match the reactions dimensions of rates and reaction_coefficient_array, which will be nreactions-by-nspecies
+        rates = np.swapaxes(rates, -2, -1)
         dc = rates @ self.reaction_coefficient_array
-        return np.ravel(dc)
+
+        # TODO: there will probably be an extra singleton dimension in here that we need to remove.
+        return dc
+
+    def do_timestep(self, dt, concentrations: np.ndarray, ambient_conditions: AmbientConditions, ambient_updated: bool) -> np.ndarray:
+        # TODO: ODE solver
+        # We should probably accept the solver as an init parameter so we can use scipy by default and switch to a custom one
+        # (or a different scipy one) if needed.
+        pass
